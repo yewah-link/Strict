@@ -1,0 +1,105 @@
+<div class="container py-4">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">🧑‍🏫 Examiner Dashboard</h2>
+    <p class="text-muted">Manage your exams and monitor student activity.</p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm p-3 h-100">
+        <h4>📝 Create Exam</h4>
+        <p>Design and publish a new online exam.</p>
+        <button class="btn btn-primary w-100" routerLink="/exams/create">Create Exam</button>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm p-3 h-100">
+        <h4>📋 Manage Exams</h4>
+        <p>View, edit, or delete existing exams.</p>
+        <button class="btn btn-warning w-100" routerLink="/exams">Manage Exams</button>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm p-3 h-100">
+        <h4>📡 Proctoring</h4>
+        <p>Monitor live exam sessions for violations.</p>
+        <button class="btn btn-danger w-100" routerLink="/proctoring">Start Proctoring</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats Section -->
+  <div class="row g-4 mt-4">
+    <div class="col-12">
+      <h4 class="fw-bold mb-3">📊 Quick Stats</h4>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm p-3 text-center">
+        <h5 class="text-muted mb-2">Total Exams</h5>
+        <h2 class="fw-bold text-primary mb-0">12</h2>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm p-3 text-center">
+        <h5 class="text-muted mb-2">Active Exams</h5>
+        <h2 class="fw-bold text-success mb-0">3</h2>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm p-3 text-center">
+        <h5 class="text-muted mb-2">Students Enrolled</h5>
+        <h2 class="fw-bold text-info mb-0">156</h2>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm p-3 text-center">
+        <h5 class="text-muted mb-2">Pending Reviews</h5>
+        <h2 class="fw-bold text-warning mb-0">8</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity Section -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <h4 class="fw-bold mb-3">🕒 Recent Activity</h4>
+      <div class="card shadow-sm">
+        <div class="list-group list-group-flush">
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>Mathematics Final Exam</strong>
+                <p class="mb-0 text-muted small">Started 2 hours ago • 45 students participating</p>
+              </div>
+              <button class="btn btn-sm btn-outline-primary" routerLink="/exams/1">View</button>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>Physics Midterm</strong>
+                <p class="mb-0 text-muted small">Ends in 3 hours • 32 students participating</p>
+              </div>
+              <button class="btn btn-sm btn-outline-primary" routerLink="/exams/2">View</button>
+            </div>
+          </div>
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>Chemistry Quiz</strong>
+                <p class="mb-0 text-muted small">Scheduled for tomorrow • 28 students enrolled</p>
+              </div>
+              <button class="btn btn-sm btn-outline-primary" routerLink="/exams/3">View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

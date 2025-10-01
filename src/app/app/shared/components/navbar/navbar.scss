@@ -1,0 +1,75 @@
+/* Navbar styles */
+.navbar {
+  padding: 0.4rem 0;
+}
+
+.navbar-brand {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  letter-spacing: 1px;
+}
+
+/* Desktop navigation links */
+.navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+  margin: 0 0.25rem;
+}
+
+.navbar-nav .nav-link:hover {
+  color: white !important;
+  opacity: 0.8;
+}
+
+/* Sidebar (offcanvas) styles */
+.offcanvas {
+  background: #0d6efd;
+  color: white;
+  max-width: 280px;
+  width: 280px;
+}
+
+.offcanvas .offcanvas-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.offcanvas .offcanvas-header .offcanvas-title {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+}
+
+.offcanvas .offcanvas-header .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.offcanvas .offcanvas-body {
+  padding: 2rem 1.5rem;
+}
+
+.offcanvas .offcanvas-body .nav-link {
+  color: white !important;
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.offcanvas .offcanvas-body .nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+  }
+}

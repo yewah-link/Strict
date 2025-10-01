@@ -1,0 +1,111 @@
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0">Create New Exam</h3>
+        </div>
+        <div class="card-body">
+          <!-- Success Message -->
+          <div *ngIf="successMessage" class="alert alert-success">
+            {{ successMessage }}
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="errorMessage" class="alert alert-danger">
+            {{ errorMessage }}
+          </div>
+
+          <form #examForm="ngForm" (ngSubmit)="onSubmit()">
+            <!-- Title -->
+            <div class="mb-3">
+              <label for="title" class="form-label">Exam Title *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                name="title"
+                [(ngModel)]="examData.title"
+                required
+                placeholder="Enter exam title"
+              >
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea
+                class="form-control"
+                id="description"
+                name="description"
+                [(ngModel)]="examData.description"
+                rows="4"
+                placeholder="Enter exam description"
+              ></textarea>
+            </div>
+
+            <!-- Duration -->
+            <div class="mb-3">
+              <label for="duration" class="form-label">Duration (minutes) *</label>
+              <input
+                type="number"
+                class="form-control"
+                id="duration"
+                name="duration"
+                [(ngModel)]="examData.duration"
+                required
+                min="1"
+                placeholder="Enter duration in minutes"
+              >
+            </div>
+
+            <!-- Start Time -->
+            <div class="mb-3">
+              <label for="startTime" class="form-label">Start Time</label>
+              <input
+                type="datetime-local"
+                class="form-control"
+                id="startTime"
+                name="startTime"
+                [(ngModel)]="examData.startTime"
+              >
+            </div>
+
+            <!-- End Time -->
+            <div class="mb-3">
+              <label for="endTime" class="form-label">End Time</label>
+              <input
+                type="datetime-local"
+                class="form-control"
+                id="endTime"
+                name="endTime"
+                [(ngModel)]="examData.endTime"
+              >
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="!examForm.valid || isLoading"
+              >
+                <span *ngIf="isLoading">Creating...</span>
+                <span *ngIf="!isLoading">Create Exam</span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="onCancel()"
+                [disabled]="isLoading"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

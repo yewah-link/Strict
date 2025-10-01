@@ -1,0 +1,146 @@
+<div class="container my-5">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading exam details...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Exam Details -->
+  <div *ngIf="!isLoading && exam">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <button class="btn btn-outline-secondary btn-sm mb-2" (click)="goBack()">
+          <i class="bi bi-arrow-left"></i> Back to Exams
+        </button>
+        <h2>{{ exam.title }}</h2>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" (click)="editExam()">
+          <i class="bi bi-pencil"></i> Edit
+        </button>
+        <button class="btn btn-danger" (click)="deleteExam()">
+          <i class="bi bi-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+
+    <!-- Exam Info Card -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Exam Information</h5>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Description:</strong></p>
+            <p>{{ exam.description || 'No description available' }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Duration:</strong> {{ exam.duration }} minutes</p>
+            <p *ngIf="exam.startTime">
+              <strong>Start Time:</strong> {{ exam.startTime | date:'medium' }}
+            </p>
+            <p *ngIf="exam.endTime">
+              <strong>End Time:</strong> {{ exam.endTime | date:'medium' }}
+            </p>
+            <p><strong>Total Questions:</strong> {{ questions.length }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions Section -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Questions</h5>
+        <button class="btn btn-sm btn-success" (click)="addQuestion()">
+          <i class="bi bi-plus-circle"></i> Add Question
+        </button>
+      </div>
+      <div class="card-body">
+        <!-- Questions List -->
+        <div *ngIf="questions.length > 0">
+          <div *ngFor="let question of questions; let i = index" class="border-bottom pb-3 mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <h6>Question {{ i + 1 }}</h6>
+                <p class="mb-2">{{ question.text }}</p>
+                <div class="d-flex gap-3 mb-2">
+                  <small class="text-muted">
+                    <i class="bi bi-tag"></i> Type: {{ getQuestionTypeLabel(question.type) }}
+                  </small>
+                  <small class="text-muted">
+                    <i class="bi bi-star"></i> Marks: {{ question.marks }}
+                  </small>
+                </div>
+
+                <!-- Choices with A, B, C, D labels -->
+                <div *ngIf="question.choices && question.choices.length > 0" class="mt-2">
+                  <small class="text-muted d-block mb-2">Options:</small>
+
+                  <!-- Check if it's True/False (2 choices) -->
+                  <div *ngIf="question.choices.length === 2 &&
+                             (question.choices[0].choiceText.toLowerCase() === 'true' ||
+                              question.choices[0].choiceText.toLowerCase() === 'false')"
+                       class="ms-3">
+                    <div *ngFor="let choice of question.choices" class="form-check mb-2">
+                      <input class="form-check-input" type="radio" [checked]="choice.isCorrect" disabled>
+                      <label class="form-check-label" [class.text-success]="choice.isCorrect" [class.fw-bold]="choice.isCorrect">
+                        {{ choice.choiceText }}
+                        <i *ngIf="choice.isCorrect" class="bi bi-check-circle-fill text-success ms-2"></i>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Multiple Choice - with A, B, C, D labels -->
+                  <ul *ngIf="!(question.choices.length === 2 &&
+                             (question.choices[0].choiceText.toLowerCase() === 'true' ||
+                              question.choices[0].choiceText.toLowerCase() === 'false'))"
+                      class="list-unstyled ms-3">
+                    <li *ngFor="let choice of question.choices; let j = index" class="mb-2">
+                      <div class="d-flex align-items-start">
+                        <span class="fw-bold me-3"
+                              [ngClass]="choice.isCorrect ? 'text-success' : 'text-muted'"
+                              style="min-width: 25px;">
+                          {{ getChoiceLetter(j) }}.
+                        </span>
+                        <span [class.text-success]="choice.isCorrect" [class.fw-bold]="choice.isCorrect">
+                          {{ choice.choiceText }}
+                          <i *ngIf="choice.isCorrect" class="bi bi-check-circle-fill text-success ms-2"></i>
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-primary" (click)="editQuestion(question.id!)">
+                  Edit
+                </button>
+                <button class="btn btn-outline-danger" (click)="deleteQuestion(question)">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="questions.length === 0" class="text-center py-4">
+          <i class="bi bi-question-circle" style="font-size: 3rem; color: #ccc;"></i>
+          <h5 class="mt-3">No Questions Yet</h5>
+          <p class="text-muted">Add questions to this exam to get started</p>
+          <button class="btn btn-primary" (click)="addQuestion()">
+            Add First Question
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

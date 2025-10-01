@@ -1,0 +1,46 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold fs-3 text-white" href="#">Strict</a>
+
+    <!-- Hamburger button for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Desktop menu -->
+    <div class="collapse navbar-collapse d-none d-lg-flex" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-center">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/about-us">About Us</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn-login" routerLink="/login">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn-signup" routerLink="/exams">Sign-up</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Sidebar for mobile -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="sidebarMenuLabel">Strict</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/about-us" data-bs-dismiss="offcanvas">About Us</a>
+      </li>
+      <li class="nav-item mt-3">
+        <a class="nav-link btn-login" routerLink="/login" data-bs-dismiss="offcanvas">Login</a>
+      </li>
+      <li class="nav-item mt-2">
+        <a class="nav-link btn-signup" routerLink="/exams" data-bs-dismiss="offcanvas">Sign-up</a>
+      </li>
+    </ul>
+  </div>
+</div>

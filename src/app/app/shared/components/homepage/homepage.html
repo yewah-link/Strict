@@ -1,0 +1,19 @@
+<div class="d-flex flex-column min-vh-100">
+  <app-navbar></app-navbar>
+
+  <main class="flex-fill container text-center my-5">
+    <h1 class="mb-4">Welcome to Online Exam Proctoring</h1>
+    <p class="mb-5">Please select how you want to login:</p>
+
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <button class="btn btn-primary btn-lg" (click)="loginAs('STUDENT')">
+        Login as Student
+      </button>
+      <button class="btn btn-success btn-lg" (click)="loginAs('EXAMINER')">
+        Login as Examiner
+      </button>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

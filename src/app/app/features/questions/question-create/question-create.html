@@ -1,0 +1,172 @@
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0">
+            {{ isEditMode ? 'Edit Question' : 'Add New Question' }}
+          </h3>
+        </div>
+        <div class="card-body">
+          <!-- Success Message -->
+          <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+            {{ successMessage }}
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Loading Spinner -->
+          <div *ngIf="isLoading && isEditMode" class="text-center my-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+
+          <form #questionForm="ngForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading || !isEditMode">
+            <!-- Question Type -->
+            <div class="mb-3">
+              <label for="type" class="form-label">Question Type *</label>
+              <select
+                class="form-select"
+                id="type"
+                name="type"
+                [(ngModel)]="questionData.type"
+                (change)="onQuestionTypeChange()"
+                required
+              >
+                <option *ngFor="let type of questionTypes" [value]="type.value">
+                  {{ type.label }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Question Text -->
+            <div class="mb-3">
+              <label for="text" class="form-label">Question *</label>
+              <textarea
+                class="form-control"
+                id="text"
+                name="text"
+                [(ngModel)]="questionData.text"
+                rows="4"
+                required
+                placeholder="Enter your question here"
+              ></textarea>
+            </div>
+
+            <!-- Marks -->
+            <div class="mb-3">
+              <label for="marks" class="form-label">Marks *</label>
+              <input
+                type="number"
+                class="form-control"
+                id="marks"
+                name="marks"
+                [(ngModel)]="questionData.marks"
+                required
+                min="1"
+                placeholder="Enter marks for this question"
+                style="max-width: 200px;"
+              >
+            </div>
+
+            <!-- Choices Section (for Multiple Choice and True/False) -->
+            <div *ngIf="showChoices()" class="mb-4">
+              <label class="form-label">Answer Choices *</label>
+
+              <div *ngFor="let choice of questionData.choices; let i = index" class="mb-2">
+                <div class="input-group">
+                  <div class="input-group-text">
+                    <input
+                      type="radio"
+                      [name]="'correctChoice'"
+                      [checked]="choice.isCorrect"
+                      (change)="onCorrectChoiceChange(i)"
+                      [disabled]="questionData.type === 'TRUE_FALSE'"
+                    >
+                  </div>
+                  <span class="input-group-text bg-light fw-bold" style="min-width: 45px;">
+                    {{ getChoiceLetter(i) }}.
+                  </span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="choice.choiceText"
+                    [name]="'choice_' + i"
+                    [placeholder]="'Enter text for choice ' + getChoiceLetter(i)"
+                    [readonly]="questionData.type === 'TRUE_FALSE'"
+                    required
+                  >
+                  <button
+                    *ngIf="questionData.type === 'MULTIPLE_CHOICE' && questionData.choices && questionData.choices.length > 2"
+                    type="button"
+                    class="btn btn-outline-danger"
+                    (click)="removeChoice(i)"
+                  >
+                    <i class="bi bi-trash"></i> Remove
+                  </button>
+                </div>
+                <small class="text-muted ms-5">
+                  {{ choice.isCorrect ? '✓ Correct answer' : '' }}
+                </small>
+              </div>
+
+              <!-- Add Choice Button -->
+              <button
+                *ngIf="questionData.type === 'MULTIPLE_CHOICE'"
+                type="button"
+                class="btn btn-outline-primary btn-sm mt-2"
+                (click)="addChoice()"
+              >
+                <i class="bi bi-plus-circle"></i> Add Choice
+              </button>
+
+              <div class="alert alert-info mt-3">
+                <small>
+                  <i class="bi bi-info-circle"></i>
+                  Select the radio button next to the correct answer
+                </small>
+              </div>
+            </div>
+
+            <!-- Short Answer / Essay Info -->
+            <div *ngIf="questionData.type === 'SHORT_ANSWER' || questionData.type === 'ESSAY'" class="alert alert-info">
+              <small>
+                <i class="bi bi-info-circle"></i>
+                This question will require manual grading. Students will type their answer in a text field.
+              </small>
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="!questionForm.valid || isLoading"
+              >
+                <span *ngIf="isLoading">
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  {{ isEditMode ? 'Updating...' : 'Creating...' }}
+                </span>
+                <span *ngIf="!isLoading">
+                  {{ isEditMode ? 'Update Question' : 'Create Question' }}
+                </span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="onCancel()"
+                [disabled]="isLoading"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
