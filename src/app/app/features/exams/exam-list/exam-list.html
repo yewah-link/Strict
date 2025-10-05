@@ -7,81 +7,161 @@
   </div>
 
   <!-- Success Message -->
-  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
-    {{ successMessage }}
-    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
-  </div>
+  @if (successMessage) {
+    <div class="alert alert-success alert-dismissible fade show">
+      {{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+  }
 
   <!-- Error Message -->
-  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
-    {{ errorMessage }}
-    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
-  </div>
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show">
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
 
   <!-- Loading State -->
-  <div *ngIf="isLoading" class="text-center py-5">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+  @if (isLoading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Loading exams...</p>
     </div>
-    <p class="mt-2">Loading exams...</p>
-  </div>
+  }
 
   <!-- Exams List -->
-  <div *ngIf="!isLoading && exams.length > 0" class="row">
-    <div *ngFor="let exam of exams" class="col-md-6 col-lg-4 mb-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">{{ exam.title }}</h5>
-          <p class="card-text text-muted">
-            {{ exam.description || 'No description available' }}
-          </p>
-          <div class="mb-2">
-            <small class="text-muted">
-              <i class="bi bi-clock"></i> Duration: {{ exam.duration }} minutes
-            </small>
-          </div>
-          <div *ngIf="exam.startTime" class="mb-2">
-            <small class="text-muted">
-              <i class="bi bi-calendar"></i> Start: {{ exam.startTime | date:'medium' }}
-            </small>
+  @if (!isLoading && exams.length > 0) {
+    <div class="row">
+      @for (exam of exams; track exam.id) {
+        <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ exam.title }}</h5>
+              <p class="card-text text-muted">
+                {{ exam.description || 'No description available' }}
+              </p>
+
+              <!-- ✅ Exam Code Display -->
+              @if (exam.examCode) {
+                <div class="mb-3">
+                  <div class="border border-primary rounded p-3 bg-light">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <div>
+                        <small class="text-muted d-block mb-1">
+                          <i class="bi bi-key"></i> Exam Code
+                        </small>
+                        <h4 class="text-primary mb-0 font-monospace">{{ exam.examCode }}</h4>
+                      </div>
+                      <div class="btn-group-vertical btn-group-sm">
+                        <button
+                          class="btn"
+                          [class.btn-success]="copiedCodeId === exam.id"
+                          [class.btn-outline-primary]="copiedCodeId !== exam.id"
+                          (click)="copyExamCode(exam)"
+                          title="Copy exam code"
+                        >
+                          @if (copiedCodeId === exam.id) {
+                            <i class="bi bi-check-lg"></i>
+                          } @else {
+                            <i class="bi bi-clipboard"></i>
+                          }
+                        </button>
+                        <button
+                          class="btn btn-outline-primary"
+                          (click)="shareExamCode(exam)"
+                          title="Share exam"
+                        >
+                          <i class="bi bi-share"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Exam Link -->
+                    @if (exam.examLink) {
+                      <div class="mt-2 pt-2 border-top">
+                        <small class="text-muted d-block mb-1">
+                          <i class="bi bi-link-45deg"></i> Exam Link
+                        </small>
+                        <div class="d-flex align-items-center gap-2">
+                          <input
+                            type="text"
+                            class="form-control form-control-sm font-monospace"
+                            [value]="exam.examLink"
+                            readonly
+                            style="font-size: 0.75rem;"
+                          >
+                          <button
+                            class="btn btn-sm btn-outline-primary"
+                            (click)="copyExamLink(exam)"
+                            title="Copy link"
+                          >
+                            <i class="bi bi-clipboard"></i>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <div class="mb-2">
+                <small class="text-muted">
+                  <i class="bi bi-clock"></i> Duration: {{ exam.duration }} minutes
+                </small>
+              </div>
+
+              @if (exam.startTime) {
+                <div class="mb-2">
+                  <small class="text-muted">
+                    <i class="bi bi-calendar"></i> Start: {{ exam.startTime | date:'medium' }}
+                  </small>
+                </div>
+              }
+            </div>
+
+            <div class="card-footer bg-transparent">
+              <div class="btn-group w-100" role="group">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="viewExam(exam.id!)"
+                >
+                  View
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                  (click)="editExam(exam.id!)"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="deleteExam(exam)"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="card-footer bg-transparent">
-          <div class="btn-group w-100" role="group">
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-primary"
-              (click)="viewExam(exam.id!)"
-            >
-              View
-            </button>
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-secondary"
-              (click)="editExam(exam.id!)"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-danger"
-              (click)="deleteExam(exam)"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
+      }
     </div>
-  </div>
+  }
 
   <!-- Empty State -->
-  <div *ngIf="!isLoading && exams.length === 0" class="text-center py-5">
-    <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
-    <h4 class="mt-3">No Exams Found</h4>
-    <p class="text-muted">Create your first exam to get started</p>
-    <button class="btn btn-primary" (click)="createExam()">
-      Create Exam
-    </button>
-  </div>
+  @if (!isLoading && exams.length === 0) {
+    <div class="text-center py-5">
+      <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+      <h4 class="mt-3">No Exams Found</h4>
+      <p class="text-muted">Create your first exam to get started</p>
+      <button class="btn btn-primary" (click)="createExam()">
+        Create Exam
+      </button>
+    </div>
+  }
 </div>

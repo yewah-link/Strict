@@ -1,1 +1,64 @@
-<p>exam-status works!</p>
+<div class="status-container">
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading exam status...</p>
+    </div>
+  }
+
+  <!-- Success State -->
+  @if (!isLoading && examCompleted) {
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <h1>Exam Submitted Successfully!</h1>
+      <p class="message">Your exam has been submitted and proctoring has ended.</p>
+
+      @if (examResult) {
+        <div class="exam-info">
+          <div class="info-row">
+            <span class="label">Submitted At:</span>
+            <span class="value">{{ examResult.submittedAt }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Total Questions:</span>
+            <span class="value">{{ examResult.totalQuestions }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Status:</span>
+            <span class="value status">{{ examResult.status }}</span>
+          </div>
+        </div>
+      }
+
+      <div class="next-steps">
+        <h3>What's Next?</h3>
+        <ul>
+          <li>Your exam will be reviewed by your instructor</li>
+          <li>Proctoring footage has been saved for review</li>
+          <li>Results will be available once grading is complete</li>
+          <li>You will be notified when results are ready</li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button (click)="goToHome()" class="btn btn-secondary">
+          Return to Home
+        </button>
+        <button (click)="viewResults()" class="btn btn-primary">
+          View Results (When Available)
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Error State (optional) -->
+  @if (!isLoading && !examCompleted) {
+    <div class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h1>Unable to Load Status</h1>
+      <p>Please try again or contact support if the problem persists.</p>
+      <button (click)="loadExamStatus()" class="btn btn-primary">Retry</button>
+    </div>
+  }
+</div>

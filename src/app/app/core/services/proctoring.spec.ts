@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ProctoringService } from './proctoring.services'; // Note: .services not .service
+import { ProctoringService } from './proctoring.service'; 
 
 describe('ProctoringService', () => {
   let service: ProctoringService;

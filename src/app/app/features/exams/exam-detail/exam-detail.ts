@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ExamService, ExamDto, ResponseStatusEnum } from '../../../core/services/exam.service';
-import { QuestionService, QuestionDto, GenericResponseV2 } from '../../../core/services/question.service';
+import { QuestionService, QuestionDto } from '../../../core/services/question.service';
 
 @Component({
   selector: 'app-exam-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './exam-detail.html',
   styleUrl: './exam-detail.scss'
 })
@@ -17,6 +17,8 @@ export class ExamDetail implements OnInit {
   examId!: number;
   isLoading = false;
   errorMessage = '';
+  copiedCode = false;
+  copiedLink = false;
 
   constructor(
     private examService: ExamService,
@@ -88,7 +90,6 @@ export class ExamDetail implements OnInit {
   }
 
   addQuestion() {
-    // Navigate to question create page with examId
     this.router.navigate(['/exams', this.examId, 'questions', 'create']);
   }
 
@@ -101,7 +102,7 @@ export class ExamDetail implements OnInit {
       this.questionService.deleteQuestion(question.id!).subscribe({
         next: (response) => {
           if (response.status === ResponseStatusEnum.SUCCESS) {
-            this.loadQuestions(); // Reload questions after delete
+            this.loadQuestions();
           }
         },
         error: (error) => {
@@ -115,12 +116,47 @@ export class ExamDetail implements OnInit {
     this.router.navigate(['/exams']);
   }
 
-  // Helper method to get choice letter (A, B, C, D, etc.)
+  // ✅ Copy exam code
+  copyExamCode() {
+    if (!this.exam?.examCode) return;
+
+    navigator.clipboard.writeText(this.exam.examCode).then(() => {
+      this.copiedCode = true;
+      setTimeout(() => this.copiedCode = false, 2000);
+    });
+  }
+
+  // ✅ Copy exam link
+  copyExamLink() {
+    if (!this.exam?.examLink) return;
+
+    navigator.clipboard.writeText(this.exam.examLink).then(() => {
+      this.copiedLink = true;
+      setTimeout(() => this.copiedLink = false, 2000);
+    });
+  }
+
+  // ✅ Share exam
+  shareExam() {
+    if (!this.exam?.examCode) return;
+
+    const shareText = `Join my exam: "${this.exam.title}"\nExam Code: ${this.exam.examCode}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: this.exam.title,
+        text: shareText,
+        url: this.exam.examLink || undefined
+      }).catch(() => this.copyExamCode());
+    } else {
+      this.copyExamCode();
+    }
+  }
+
   getChoiceLetter(index: number): string {
     return String.fromCharCode(65 + index);
   }
 
-  // Helper method to get question type label
   getQuestionTypeLabel(type: string): string {
     const types: { [key: string]: string } = {
       'MULTIPLE_CHOICE': 'Multiple Choice',

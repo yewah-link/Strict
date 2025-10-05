@@ -1,1 +1,288 @@
-<p>proctoring-session works!</p>
+<div class="container-fluid my-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-secondary" (click)="backToExamSelection()">
+            <i class="bi bi-arrow-left"></i> Back to Exams
+          </button>
+          <h2 class="mb-0">Proctoring Session</h2>
+        </div>
+        <div class="d-flex gap-2">
+          @if (session) {
+            <span class="badge" [ngClass]="getStatusBadgeClass()">
+              {{ session.status }}
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Message -->
+  @if (successMessage) {
+    <div class="alert alert-success alert-dismissible fade show">
+      {{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show">
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Loading session...</p>
+    </div>
+  }
+
+  <!-- Main Content -->
+  @if (!isLoading && session) {
+    <div class="row">
+      <!-- Video Feed Column -->
+      <div class="col-lg-8">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="bi bi-camera-video"></i> Video Monitor
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="video-container bg-dark text-white d-flex align-items-center justify-content-center"
+                 style="min-height: 400px; border-radius: 8px;">
+              <div class="text-center">
+                <i class="bi bi-camera-video-off" style="font-size: 4rem;"></i>
+                <p class="mt-3">Video stream will appear here</p>
+                <small class="text-muted">Waiting for student to connect...</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screen Share -->
+        <div class="card mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="bi bi-display"></i> Screen Share
+            </h5>
+            <button
+              class="btn btn-sm"
+              [ngClass]="isScreenActive ? 'btn-danger' : 'btn-success'"
+              (click)="toggleScreenMonitoring()">
+              <i class="bi" [ngClass]="isScreenActive ? 'bi-stop-circle' : 'bi-play-circle'"></i>
+              {{ isScreenActive ? 'Stop' : 'Start' }} Screen Monitoring
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="screen-container bg-secondary text-white d-flex align-items-center justify-content-center"
+                 style="min-height: 300px; border-radius: 8px;">
+              @if (!isScreenActive) {
+                <div class="text-center">
+                  <i class="bi bi-display-fill" style="font-size: 3rem;"></i>
+                  <p class="mt-3">Screen sharing inactive</p>
+                </div>
+              }
+              @if (isScreenActive) {
+                <div class="text-center">
+                  <i class="bi bi-display" style="font-size: 3rem;"></i>
+                  <p class="mt-3">Screen sharing active</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control Panel Column -->
+      <div class="col-lg-4">
+        <!-- Session Controls -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="bi bi-sliders"></i> Session Controls
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              @if (session.status === StreamStatus.ACTIVE) {
+                <button
+                  class="btn btn-warning"
+                  (click)="pauseSession()">
+                  <i class="bi bi-pause-circle"></i> Pause Session
+                </button>
+              }
+
+              @if (session.status === StreamStatus.PAUSED) {
+                <button
+                  class="btn btn-info"
+                  (click)="resumeSession()">
+                  <i class="bi bi-play-circle"></i> Resume Session
+                </button>
+              }
+
+              @if (session.status === StreamStatus.ACTIVE || session.status === StreamStatus.PAUSED) {
+                <button
+                  class="btn btn-danger"
+                  (click)="endSession()">
+                  <i class="bi bi-stop-circle"></i> End Session
+                </button>
+              }
+
+              @if (session.status === StreamStatus.INACTIVE || session.status === StreamStatus.DISCONNECTED) {
+                <div class="alert alert-warning mb-0">
+                  <i class="bi bi-info-circle"></i>
+                  Session is not active
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Monitoring Controls -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="bi bi-eye"></i> Monitoring Controls
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <!-- Audio Monitoring -->
+              <button
+                class="btn"
+                [ngClass]="isAudioActive ? 'btn-danger' : 'btn-outline-primary'"
+                (click)="toggleAudioMonitoring()">
+                <i class="bi" [ngClass]="isAudioActive ? 'bi-mic-mute' : 'bi-mic'"></i>
+                {{ isAudioActive ? 'Stop' : 'Start' }} Audio Monitoring
+              </button>
+
+              <!-- Screen Monitoring -->
+              <button
+                class="btn"
+                [ngClass]="isScreenActive ? 'btn-danger' : 'btn-outline-primary'"
+                (click)="toggleScreenMonitoring()">
+                <i class="bi" [ngClass]="isScreenActive ? 'bi-display-fill' : 'bi-display'"></i>
+                {{ isScreenActive ? 'Stop' : 'Start' }} Screen Monitoring
+              </button>
+
+              <!-- Browser Policies -->
+              <button
+                class="btn"
+                [ngClass]="arePoliciesEnforced ? 'btn-success' : 'btn-outline-warning'"
+                [disabled]="arePoliciesEnforced"
+                (click)="enforceBrowserPolicies()">
+                <i class="bi bi-shield-check"></i>
+                {{ arePoliciesEnforced ? 'Policies Enforced' : 'Enforce Browser Policies' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Tabs Monitor -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="bi bi-window"></i> Active Tabs
+            </h5>
+          </div>
+          <div class="card-body">
+            @if (activeTabs.length === 0) {
+              <div class="text-muted text-center py-3">
+                <i class="bi bi-info-circle"></i>
+                <p class="mb-0 mt-2">No active tabs detected</p>
+              </div>
+            }
+            @if (activeTabs.length > 0) {
+              <ul class="list-group">
+                @for (tab of activeTabs; track tab) {
+                  <li class="list-group-item">
+                    <i class="bi bi-window-sidebar"></i> {{ tab }}
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+
+        <!-- Session Info -->
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="bi bi-info-circle"></i> Session Information
+            </h5>
+          </div>
+          <div class="card-body">
+            <p class="mb-2">
+              <strong>Session ID:</strong> {{ session.id }}
+            </p>
+            <p class="mb-2">
+              <strong>Exam:</strong> {{ session.examTitle || 'N/A' }} 
+              @if (session.examCode) {
+                <span class="badge bg-light text-dark">({{ session.examCode }})</span>
+              }
+            </p>
+            <p class="mb-2">
+              <strong>Exam ID:</strong> {{ session.examId }}
+            </p>
+            <p class="mb-2">
+              <strong>Proctor:</strong> {{ session.proctorName || 'N/A' }}
+            </p>
+            <p class="mb-2">
+              <strong>Proctor ID:</strong> {{ session.proctorId }}
+            </p>
+            <p class="mb-2">
+              <strong>Status:</strong>
+              <span class="badge ms-2" [ngClass]="getStatusBadgeClass()">
+                {{ session.status }}
+              </span>
+            </p>
+            @if (session.totalStudents !== undefined) {
+              <p class="mb-2">
+                <strong>Total Students:</strong> {{ session.totalStudents }}
+              </p>
+            }
+            @if (session.activeStudents !== undefined) {
+              <p class="mb-2">
+                <strong>Active Students:</strong> {{ session.activeStudents }}
+              </p>
+            }
+            @if (session.totalViolations !== undefined) {
+              <p class="mb-2">
+                <strong>Total Violations:</strong> 
+                <span class="badge bg-danger ms-2">{{ session.totalViolations }}</span>
+              </p>
+            }
+            @if (session.startTime) {
+              <p class="mb-2">
+                <strong>Started:</strong> {{ session.startTime | date:'medium' }}
+              </p>
+            }
+            @if (session.endTime) {
+              <p class="mb-0">
+                <strong>Ended:</strong> {{ session.endTime | date:'medium' }}
+              </p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- No Session Found -->
+  @if (!isLoading && !session) {
+    <div class="alert alert-warning">
+      <i class="bi bi-exclamation-triangle"></i>
+      No active session found. Redirecting to exam selection...
+    </div>
+  }
+</div>
