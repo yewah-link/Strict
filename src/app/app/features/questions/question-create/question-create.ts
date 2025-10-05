@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Router, ActivatedRoute} from '@angular/router';
 import { QuestionService, QuestionDto, ResponseStatusEnum, ChoicesDto } from '../../../core/services/question.service';
 
 @Component({
   selector: 'app-question-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './question-create.html',
   styleUrl: './question-create.scss'
 })

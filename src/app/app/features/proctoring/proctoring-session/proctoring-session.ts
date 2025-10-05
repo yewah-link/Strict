@@ -2,23 +2,20 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
-import {
-  ProctoringService,
-  ProctoringSessionDto,
-  ResponseStatusEnum,
-  StreamStatus
-} from '../../../core/services/proctoring.services'; // ✅ Correct import
+import { ResponseStatusEnum } from '../../../core/services/auth.services';
+import { ProctoringSessionDto, StreamStatus, ProctoringService } from '../../../core/services/proctoring.service';
 
 @Component({
   selector: 'app-proctoring-session',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './proctoring-session.html',
-  styleUrls: ['./proctoring-session.scss'] // ✅ FIXED (plural styleUrls)
+  styleUrls: ['./proctoring-session.scss']
 })
 export class ProctoringSession implements OnInit, OnDestroy {
   session: ProctoringSessionDto | null = null;
   sessionId!: number;
+  examId!: number;
   isLoading = false;
   errorMessage = '';
   successMessage = '';
@@ -44,9 +41,20 @@ export class ProctoringSession implements OnInit, OnDestroy {
   ngOnInit() {
     this.route.params.subscribe(params => {
       this.sessionId = +params['sessionId'];
-      if (this.sessionId) {
-        this.loadSessionStatus();
+      
+      // Get examId from navigation state
+      const navigation = this.router.getCurrentNavigation();
+      this.examId = navigation?.extras?.state?.['examId'] || history.state?.examId;
+      
+      if (this.sessionId && this.examId) {
+        this.loadSessionDetails();
         this.startAutoRefresh();
+      } else if (this.sessionId && !this.examId) {
+        // Fallback: try to get all sessions and find this one
+        this.loadSessionByIdFallback();
+      } else {
+        this.errorMessage = 'Invalid session ID';
+        this.router.navigate(['/proctoring']);
       }
     });
   }
@@ -58,7 +66,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
   startAutoRefresh() {
     // Refresh session status every 5 seconds
     this.refreshSubscription = interval(5000).subscribe(() => {
-      this.loadSessionStatus(true); // Silent refresh
+      this.loadSessionDetails(true); // Silent refresh
       this.loadActiveTabs();
     });
   }
@@ -69,56 +77,113 @@ export class ProctoringSession implements OnInit, OnDestroy {
     }
   }
 
-  loadSessionStatus(silent: boolean = false) {
+  loadSessionDetails(silent: boolean = false) {
     if (!silent) {
       this.isLoading = true;
     }
+    this.errorMessage = '';
 
-    this.proctoringService.getSessionStatus(this.sessionId).subscribe({
-      next: (response: any) => {
-        this.isLoading = false;
-        if (response.status === ResponseStatusEnum.SUCCESS) {
-          // ✅ You can update session state here if needed
+    // Use examId to get the active session
+    this.proctoringService.getActiveSessionByExamId(this.examId).subscribe({
+      next: (response) => {
+        if (!silent) {
+          this.isLoading = false;
+        }
+        
+        if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
+          this.session = response._embedded;
+          
+          // Verify this is the correct session
+          if (this.session.id !== this.sessionId) {
+            this.errorMessage = 'Session mismatch. Redirecting...';
+            setTimeout(() => {
+              this.router.navigate(['/proctoring']);
+            }, 2000);
+            return;
+          }
+          
+          this.syncMonitoringStates();
+        } else {
+          if (!silent) {
+            this.errorMessage = 'No active session found. Redirecting to exam selection...';
+            setTimeout(() => {
+              this.router.navigate(['/proctoring']);
+            }, 3000);
+          }
         }
       },
-      error: () => {
-        this.isLoading = false;
+      error: (error) => {
         if (!silent) {
-          this.errorMessage = 'Failed to load session status';
+          this.isLoading = false;
+          this.errorMessage = 'Failed to load session details';
+          console.error('Error loading session:', error);
+          
+          setTimeout(() => {
+            this.router.navigate(['/proctoring']);
+          }, 3000);
         }
       }
     });
+  }
+
+  // Fallback method if examId is not available
+  loadSessionByIdFallback() {
+    this.isLoading = true;
+    
+    // Get all sessions and find the one with matching sessionId
+    this.proctoringService.getAllSessions().subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        
+        if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
+          const foundSession = response._embedded.find(s => s.id === this.sessionId);
+          
+          if (foundSession && foundSession.examId) {
+            this.examId = foundSession.examId;
+            this.session = foundSession;
+            this.syncMonitoringStates();
+            this.startAutoRefresh();
+          } else {
+            this.errorMessage = 'Session not found. Redirecting...';
+            setTimeout(() => {
+              this.router.navigate(['/proctoring']);
+            }, 2000);
+          }
+        } else {
+          this.errorMessage = 'Failed to load session';
+          setTimeout(() => {
+            this.router.navigate(['/proctoring']);
+          }, 2000);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = 'Failed to load sessions';
+        console.error('Error:', error);
+        setTimeout(() => {
+          this.router.navigate(['/proctoring']);
+        }, 3000);
+      }
+    });
+  }
+
+  syncMonitoringStates() {
+    if (this.session) {
+      this.isAudioActive = this.session.audioMonitoringActive || false;
+      this.isScreenActive = this.session.screenMonitoringActive || false;
+      this.arePoliciesEnforced = this.session.browserPoliciesEnforced || false;
+    }
   }
 
   loadActiveTabs() {
     this.proctoringService.getActiveTabs(this.sessionId).subscribe({
-      next: (response: any) => {
+      next: (response) => {
         if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
           this.activeTabs = response._embedded;
         }
       },
-      error: (error: any) => {
+      error: (error) => {
         console.error('Failed to load active tabs:', error);
-      }
-    });
-  }
-
-  startSession() {
-    const studentExamId = 1; // TODO: Replace with actual value
-    const proctorId = 1; // TODO: Replace with actual value
-
-    this.proctoringService.startProctoringSession(studentExamId, proctorId).subscribe({
-      next: (response: any) => {
-        if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
-          this.session = response._embedded;
-          this.successMessage = 'Proctoring session started successfully';
-          setTimeout(() => (this.successMessage = ''), 3000);
-        } else {
-          this.errorMessage = response.message || 'Failed to start session';
-        }
-      },
-      error: () => {
-        this.errorMessage = 'Failed to start proctoring session';
       }
     });
   }
@@ -126,7 +191,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
   endSession() {
     if (confirm('Are you sure you want to end this proctoring session?')) {
       this.proctoringService.endProctoringSession(this.sessionId).subscribe({
-        next: (response: any) => {
+        next: (response) => {
           if (response.status === ResponseStatusEnum.SUCCESS) {
             this.successMessage = 'Session ended successfully';
             this.stopAutoRefresh();
@@ -144,7 +209,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
 
   pauseSession() {
     this.proctoringService.pauseProctoringSession(this.sessionId).subscribe({
-      next: (response: any) => {
+      next: (response) => {
         if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
           this.session = response._embedded;
           this.successMessage = 'Session paused';
@@ -161,7 +226,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
 
   resumeSession() {
     this.proctoringService.resumeProctoringSession(this.sessionId).subscribe({
-      next: (response: any) => {
+      next: (response) => {
         if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
           this.session = response._embedded;
           this.successMessage = 'Session resumed';
@@ -179,7 +244,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
   toggleAudioMonitoring() {
     if (this.isAudioActive) {
       this.proctoringService.stopAudioMonitoring(this.sessionId).subscribe({
-        next: (response: any) => {
+        next: (response) => {
           if (response.status === ResponseStatusEnum.SUCCESS) {
             this.isAudioActive = false;
             this.successMessage = 'Audio monitoring stopped';
@@ -192,7 +257,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
       });
     } else {
       this.proctoringService.startAudioMonitoring(this.sessionId).subscribe({
-        next: (response: any) => {
+        next: (response) => {
           if (response.status === ResponseStatusEnum.SUCCESS) {
             this.isAudioActive = true;
             this.successMessage = 'Audio monitoring started';
@@ -209,7 +274,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
   toggleScreenMonitoring() {
     if (this.isScreenActive) {
       this.proctoringService.stopScreenMonitoring(this.sessionId).subscribe({
-        next: (response: any) => {
+        next: (response) => {
           if (response.status === ResponseStatusEnum.SUCCESS) {
             this.isScreenActive = false;
             this.successMessage = 'Screen monitoring stopped';
@@ -222,7 +287,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
       });
     } else {
       this.proctoringService.startScreenMonitoring(this.sessionId).subscribe({
-        next: (response: any) => {
+        next: (response) => {
           if (response.status === ResponseStatusEnum.SUCCESS) {
             this.isScreenActive = true;
             this.successMessage = 'Screen monitoring started';
@@ -238,7 +303,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
 
   enforceBrowserPolicies() {
     this.proctoringService.enforceBrowserPolicies(this.sessionId).subscribe({
-      next: (response: any) => {
+      next: (response) => {
         if (response.status === ResponseStatusEnum.SUCCESS) {
           this.arePoliciesEnforced = true;
           this.successMessage = 'Browser policies enforced';
@@ -253,6 +318,11 @@ export class ProctoringSession implements OnInit, OnDestroy {
     });
   }
 
+  backToExamSelection() {
+    this.stopAutoRefresh();
+    this.router.navigate(['/proctoring']);
+  }
+
   getStatusBadgeClass(): string {
     if (!this.session) return 'bg-secondary';
 
@@ -261,8 +331,10 @@ export class ProctoringSession implements OnInit, OnDestroy {
         return 'bg-success';
       case StreamStatus.PAUSED:
         return 'bg-warning';
-      case StreamStatus.ENDED:
+      case StreamStatus.DISCONNECTED:
         return 'bg-danger';
+      case StreamStatus.INACTIVE:
+        return 'bg-secondary';
       default:
         return 'bg-secondary';
     }

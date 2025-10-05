@@ -1,0 +1,301 @@
+.exam-container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+// Loading Screen
+.loading-screen,
+.error-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.loading-content,
+.error-content {
+  max-width: 500px;
+  width: 100%;
+}
+
+// Exam Interface
+.exam-interface {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+// Top Navigation Bar
+.exam-navbar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  .exam-title h5 {
+    font-weight: 600;
+    color: white;
+  }
+
+  .timer-display {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &.timer-warning {
+      background: #dc3545;
+      animation: pulse 1s infinite;
+    }
+
+    .time {
+      min-width: 80px;
+      text-align: center;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+// Main Content
+.exam-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+// Proctoring Sidebar
+.proctoring-sidebar {
+  background: white;
+  border-right: 1px solid #dee2e6;
+  padding: 1.5rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 80px);
+}
+
+.proctoring-panel {
+  h6 {
+    font-weight: 600;
+    color: #495057;
+  }
+}
+
+.video-preview-container {
+  position: relative;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+
+  .video-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .recording-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .recording-dot {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: blink 1.5s infinite;
+    }
+  }
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.proctoring-status {
+  .status-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+
+    i {
+      font-size: 1.2rem;
+    }
+
+    span {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Question Area
+.question-area {
+  padding: 2rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 80px);
+  background: #f8f9fa;
+}
+
+.questions-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.exam-instructions {
+  border-left: 4px solid #667eea;
+  
+  .card-title {
+    color: #667eea;
+    font-weight: 600;
+  }
+
+  ul {
+    margin-top: 1rem;
+    padding-left: 1.5rem;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+.question-card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .question-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .question-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #212529;
+    line-height: 1.6;
+  }
+
+  .options {
+    .form-check {
+      padding: 0.75rem;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #f8f9fa;
+      }
+
+      .form-check-input {
+        margin-top: 0.25rem;
+        cursor: pointer;
+      }
+
+      .form-check-label {
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    font-size: 1rem;
+    
+    &:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .proctoring-sidebar {
+    display: none; // Hide on mobile, show only questions
+  }
+
+  .question-area {
+    padding: 1rem;
+  }
+
+  .exam-navbar {
+    .exam-title h5 {
+      font-size: 0.9rem;
+    }
+
+    .timer-display {
+      padding: 0.4rem 1rem;
+      font-size: 1rem;
+    }
+
+    .btn-sm {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+}
+
+// Print Styles (Prevent printing during exam)
+@media print {
+  body {
+    display: none;
+  }
+}
+
+// Fullscreen mode styling
+.exam-interface:-webkit-full-screen {
+  width: 100%;
+  height: 100%;
+}
+
+.exam-interface:-moz-full-screen {
+  width: 100%;
+  height: 100%;
+}
+
+.exam-interface:-ms-fullscreen {
+  width: 100%;
+  height: 100%;
+}
+
+.exam-interface:fullscreen {
+  width: 100%;
+  height: 100%;
+}

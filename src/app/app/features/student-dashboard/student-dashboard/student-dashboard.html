@@ -9,7 +9,7 @@
       <div class="card shadow-sm p-3">
         <h4>📚 Take Exam</h4>
         <p>Start a pending or scheduled exam assigned to you.</p>
-        <button class="btn btn-primary w-100">Start Exam</button>
+        <button class="btn btn-primary w-100" (click)="takeExam()">Start Exam</button>
       </div>
     </div>
 
@@ -17,7 +17,7 @@
       <div class="card shadow-sm p-3">
         <h4>📊 View Results</h4>
         <p>Check your performance and past exam history.</p>
-        <button class="btn btn-success w-100">View Results</button>
+        <button class="btn btn-success w-100" routerLink="/exams">View Results</button>
       </div>
     </div>
   </div>

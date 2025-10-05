@@ -7,7 +7,7 @@ import { ExamService, ExamDto, ResponseStatusEnum } from '../../../core/services
 @Component({
   selector: 'app-exam-create',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule],  
   templateUrl: './exam-create.html',
   styleUrl: './exam-create.scss'
 })
@@ -33,7 +33,6 @@ export class ExamCreate implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Check if we're in edit mode
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.isEditMode = true;

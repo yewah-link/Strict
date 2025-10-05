@@ -9,7 +9,11 @@ export interface ExamDto {
   description?: string;
   startTime?: string;
   endTime?: string;
+  createdDate?: string;
   duration: number;
+  instructions?: string;
+  examCode?: string;
+  examLink?: string;
   questions?: QuestionDto[];
 }
 
@@ -24,7 +28,7 @@ export interface QuestionDto {
 
 export interface ChoicesDto {
   id?: number;
-  text: string;
+  choiceText: string;
   isCorrect: boolean;
   questionId?: number;
 }
@@ -69,6 +73,14 @@ export class ExamService {
   getExamById(id: number): Observable<GenericResponseV2<ExamDto>> {
     return this.http.get<GenericResponseV2<ExamDto>>(
       `${this.apiUrl}/${id}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // Fixed: Changed from /code/ to /link/ to match backend
+  getExamByCode(examCode: string): Observable<GenericResponseV2<ExamDto>> {
+    return this.http.get<GenericResponseV2<ExamDto>>(
+      `${this.apiUrl}/link/${examCode}`,
       { headers: this.getHeaders() }
     );
   }

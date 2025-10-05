@@ -1,1 +1,321 @@
-<p>exam-take works!</p>
+<div class="exam-container">
+
+  <!-- Link Input Screen -->
+  @if (showLinkInput) {
+    <div class="link-input-screen py-5">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-md-6">
+            <div class="card shadow">
+              <div class="card-body p-5">
+                <h3 class="text-center mb-4">
+                  <i class="bi bi-link-45deg"></i> Access Exam
+                </h3>
+                <p class="text-muted text-center mb-4">
+                  Enter your exam link or session ID to begin
+                </p>
+
+                <div class="mb-3">
+                  <label for="sessionId" class="form-label">Exam Link / Session ID</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-lg"
+                    id="sessionId"
+                    [(ngModel)]="sessionId"
+                    placeholder="e.g., ABC123XYZ"
+                    (keyup.enter)="accessExamByLink(true)">
+                </div>
+
+                @if (error) {
+                  <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i> {{ error }}
+                  </div>
+                }
+
+                <button
+                  class="btn btn-primary btn-lg w-100"
+                  (click)="accessExamByLink(true)"
+                  [disabled]="isLoading">
+                  @if (isLoading) {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                  }
+                  Access Exam
+                </button>
+
+                <div class="text-center mt-3">
+                  <a routerLink="/student-dashboard" class="text-muted">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading/Initialization Screen -->
+  @if (isLoading && !showLinkInput) {
+    <div class="loading-screen">
+      <div class="loading-content text-center">
+        <div class="spinner-border text-primary mb-4" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <h3 class="mb-3">Initializing Exam Environment</h3>
+        <p class="text-muted">Setting up proctoring and loading exam data...</p>
+        <div class="mt-4">
+          <div class="progress" style="height: 8px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                 role="progressbar"
+                 style="width: 100%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Error Screen -->
+  @if (!isLoading && error && !showLinkInput) {
+    <div class="error-screen">
+      <div class="error-content text-center">
+        <i class="bi bi-exclamation-triangle-fill text-danger mb-4" style="font-size: 4rem;"></i>
+        <h3 class="text-danger mb-3">Unable to Start Exam</h3>
+        <p class="text-muted mb-4">{{ error }}</p>
+        <button class="btn btn-primary" routerLink="/student-dashboard">
+          <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Main Exam Interface -->
+  @if (!isLoading && !error && exam && !showLinkInput) {
+    <div class="exam-interface">
+
+      <!-- Top Navigation Bar -->
+      <nav class="exam-navbar">
+        <div class="container-fluid">
+          <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="exam-title">
+              <h5 class="mb-0">
+                <i class="bi bi-file-earmark-text"></i>
+                {{ exam.title }}
+              </h5>
+            </div>
+
+            <div class="exam-timer">
+              <div class="timer-display" [class.timer-warning]="isTimerWarning()">
+                <i class="bi bi-clock"></i>
+                <span class="time">{{ timeRemaining }}</span>
+              </div>
+            </div>
+
+            <button class="btn btn-danger btn-sm" (click)="submitExam()">
+              <i class="bi bi-check-circle"></i> Submit Exam
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content Area -->
+      <div class="exam-content">
+        <div class="container-fluid h-100">
+          <div class="row h-100">
+
+            <!-- Left Sidebar - Video Preview -->
+            <div class="col-md-3 proctoring-sidebar">
+              <div class="proctoring-panel">
+                <h6 class="mb-3">
+                  <i class="bi bi-camera-video"></i> Proctoring Monitor
+                </h6>
+
+                <!-- Video Preview -->
+                <div class="video-preview-container mb-3">
+                  <video
+                    #videoElement
+                    autoplay
+                    muted
+                    playsinline
+                    class="video-preview">
+                  </video>
+                  @if (isProctoringActive) {
+                    <div class="recording-indicator">
+                      <span class="recording-dot"></span>
+                      Recording
+                    </div>
+                  }
+                </div>
+
+                <!-- Proctoring Status -->
+                <div class="proctoring-status">
+                  <div class="status-item mb-2">
+                    <i class="bi bi-camera-video-fill"
+                       [class.text-success]="isProctoringActive"
+                       [class.text-muted]="!isProctoringActive"></i>
+                    <span class="ms-2">Camera</span>
+                    @if (isProctoringActive) {
+                      <span class="badge bg-success ms-auto">Active</span>
+                    } @else {
+                      <span class="badge bg-secondary ms-auto">Inactive</span>
+                    }
+                  </div>
+                  <div class="status-item mb-2">
+                    <i class="bi bi-mic-fill"
+                       [class.text-success]="isProctoringActive"
+                       [class.text-muted]="!isProctoringActive"></i>
+                    <span class="ms-2">Microphone</span>
+                    @if (isProctoringActive) {
+                      <span class="badge bg-success ms-auto">Active</span>
+                    } @else {
+                      <span class="badge bg-secondary ms-auto">Inactive</span>
+                    }
+                  </div>
+                  <div class="status-item">
+                    <i class="bi bi-display"
+                       [class.text-success]="isProctoringActive"
+                       [class.text-muted]="!isProctoringActive"></i>
+                    <span class="ms-2">Screen Monitor</span>
+                    @if (isProctoringActive) {
+                      <span class="badge bg-success ms-auto">Active</span>
+                    } @else {
+                      <span class="badge bg-secondary ms-auto">Inactive</span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Warning Messages -->
+                <div class="alert alert-warning mt-3 small" role="alert">
+                  <i class="bi bi-exclamation-triangle"></i>
+                  <strong>Note:</strong> Don't leave this page or your exam may be flagged.
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Question Area -->
+            <div class="col-md-9 question-area">
+              <div class="questions-container">
+
+                <!-- Exam Instructions -->
+                <div class="exam-instructions card mb-4">
+                  <div class="card-body">
+                    <h5 class="card-title">
+                      <i class="bi bi-info-circle"></i> Instructions
+                    </h5>
+                    <p class="card-text">{{ exam.instructions }}</p>
+                    <ul class="mb-0">
+                      <li>Answer all questions to the best of your ability</li>
+                      <li>You can navigate between questions using the navigation panel</li>
+                      <li>Your progress is automatically saved</li>
+                      <li>Submit the exam when you're done or when time runs out</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Questions List -->
+                @if (questions.length === 0) {
+                  <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    This exam has no questions yet. Please contact your examiner.
+                  </div>
+                }
+
+                @for (question of questions; track question.id; let i = $index) {
+                  <div class="question-card card mb-4">
+                    <div class="card-body">
+                      <div class="question-header mb-3">
+                        <span class="badge bg-primary">Question {{ i + 1 }}</span>
+                        <span class="badge bg-secondary ms-2">{{ question.points }} points</span>
+                      </div>
+
+                      <h6 class="question-text mb-3">{{ question.questionText }}</h6>
+
+                      <!-- Multiple Choice Options -->
+                      @if (question.type === 'multiple-choice') {
+                        <div class="options">
+                          @if (question.options && question.options.length > 0) {
+                            @for (option of question.options; track $index; let j = $index) {
+                              <div class="form-check mb-2">
+                                <input
+                                  class="form-check-input"
+                                  type="radio"
+                                  [name]="'question-' + question.id"
+                                  [id]="'q' + question.id + '-option' + j"
+                                  [(ngModel)]="question.selectedAnswer"
+                                  [value]="option">
+                                <label class="form-check-label" [for]="'q' + question.id + '-option' + j">
+                                  <strong>{{ String.fromCharCode(65 + j) }}.</strong> {{ option }}
+                                </label>
+                              </div>
+                            }
+                          } @else {
+                            <div class="alert alert-warning">
+                              No options available for this question.
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      <!-- Short Answer / Essay -->
+                      @if (question.type === 'short-answer' || question.type === 'essay') {
+                        <div>
+                          <textarea
+                            class="form-control"
+                            [rows]="question.type === 'essay' ? 8 : 3"
+                            [(ngModel)]="question.selectedAnswer"
+                            placeholder="Type your answer here...">
+                          </textarea>
+                        </div>
+                      }
+
+                      <!-- True/False -->
+                      @if (question.type === 'true-false') {
+                        <div class="options">
+                          <div class="form-check mb-2">
+                            <input
+                              class="form-check-input"
+                              type="radio"
+                              [name]="'question-' + question.id"
+                              [id]="'q' + question.id + '-true'"
+                              [(ngModel)]="question.selectedAnswer"
+                              value="True">
+                            <label class="form-check-label" [for]="'q' + question.id + '-true'">
+                              True
+                            </label>
+                          </div>
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="radio"
+                              [name]="'question-' + question.id"
+                              [id]="'q' + question.id + '-false'"
+                              [(ngModel)]="question.selectedAnswer"
+                              value="False">
+                            <label class="form-check-label" [for]="'q' + question.id + '-false'">
+                              False
+                            </label>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- Submit Button -->
+                <div class="text-center mt-4 mb-5">
+                  <button class="btn btn-success btn-lg px-5" (click)="submitExam()">
+                    <i class="bi bi-check-circle"></i> Submit Exam
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>
