@@ -18,6 +18,19 @@ export interface StudentExamDto {
   sessionId?: string;
   studentId?: number;
   examId?: number;
+
+  studentName?: string;
+  studentEmail?: string;
+  studentRegNo?: string;
+
+  examTitle?: string;
+  examSubject?: string;
+  examTotalMarks?: number;
+  examDuration?: number;
+
+  questions?: QuestionDto[];
+
+  // Existing fields
   startedAt?: string;
   submittedAt?: string;
   status?: ExamStatus;
@@ -26,10 +39,30 @@ export interface StudentExamDto {
   violations?: ViolationLogDto[];
 }
 
+export interface QuestionDto {
+  id: number;
+  text: string;
+  type: 'MULTIPLE_CHOICE' | 'WRITTEN';
+  marks: number;
+  examId?: number | null;
+  choices?: ChoicesDto[];
+}
+
+export interface ChoicesDto {
+  id?: number;
+  choiceText: string;
+  isCorrect: boolean;
+  questionId?: number | null;
+}
+
 export interface StudentAnswerDto {
+  id?: number;
+  studentExamId?: number;
   questionId: number;
-  selectedOptionId?: number;
+  selectedChoiceId?: number;
   answerText?: string;
+  isCorrect?: boolean;
+  obtainedMarks?: number;
 }
 
 export interface ResultDto {
@@ -77,7 +110,7 @@ export class StudentExamService {
 
   startExam(examId: number, studentId: number): Observable<GenericResponseV2<StudentExamDto>> {
     return this.http.post<GenericResponseV2<StudentExamDto>>(
-      `${this.apiUrl}/start/${examId}/student/${studentId}`,
+      `${this.apiUrl}/start?examId=${examId}&studentId=${studentId}`,
       {},
       { headers: this.getHeaders() }
     );
@@ -93,7 +126,7 @@ export class StudentExamService {
 
   autoSubmitExam(studentExamId: number): Observable<GenericResponseV2<void>> {
     return this.http.post<GenericResponseV2<void>>(
-      `${this.apiUrl}/auto-submit/${studentExamId}`,
+      `${this.apiUrl}/${studentExamId}/auto-submit`,
       {},
       { headers: this.getHeaders() }
     );
@@ -101,7 +134,7 @@ export class StudentExamService {
 
   getExamStatus(studentExamId: number): Observable<GenericResponseV2<string>> {
     return this.http.get<GenericResponseV2<string>>(
-      `${this.apiUrl}/status/${studentExamId}`,
+      `${this.apiUrl}/${studentExamId}/status`,
       { headers: this.getHeaders() }
     );
   }
@@ -113,9 +146,16 @@ export class StudentExamService {
     );
   }
 
-  getExamBySessionId(sessionId: string): Observable<GenericResponseV2<StudentExamDto>> {
+  getStudentExamByLink(examCode: string): Observable<GenericResponseV2<StudentExamDto>> {
     return this.http.get<GenericResponseV2<StudentExamDto>>(
-      `${this.apiUrl}/link/${sessionId}`,
+      `${this.apiUrl}/link/${examCode}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getAllSubmittedExams(): Observable<GenericResponseV2<StudentExamDto[]>> {
+    return this.http.get<GenericResponseV2<StudentExamDto[]>>(
+      `${this.apiUrl}/submitted`,
       { headers: this.getHeaders() }
     );
   }

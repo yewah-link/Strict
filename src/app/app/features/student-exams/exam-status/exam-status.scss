@@ -1,0 +1,164 @@
+// Main component wrapper (add this to wrap all your styles)
+.exam-status-page {
+  // Fix for the orphaned &:last-child
+  .info-row {
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      font-weight: 600;
+      color: #666;
+    }
+
+    .value {
+      color: #333;
+      font-weight: 500;
+
+      &.status {
+        color: #ff9800;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .next-steps {
+    text-align: left;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: #e3f2fd;
+    border-radius: 12px;
+    border-left: 4px solid #2196F3;
+
+    h3 {
+      color: #1976d2;
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        color: #333;
+        padding: 8px 0;
+        padding-left: 28px;
+        position: relative;
+        line-height: 1.6;
+
+        &:before {
+          content: '→';
+          position: absolute;
+          left: 0;
+          color: #2196F3;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    .btn {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+
+      &.btn-primary {
+        background: #4CAF50;
+        color: white;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+
+        &:hover {
+          background: #45a049;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+        }
+      }
+
+      &.btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+
+        &:hover {
+          background: #d0d0d0;
+          transform: translateY(-2px);
+        }
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+
+  // Responsive Design
+  @media (max-width: 768px) {
+    .success-card,
+    .error-card {
+      padding: 32px 24px;
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    .message {
+      font-size: 16px;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      font-size: 48px;
+    }
+
+    .actions {
+      flex-direction: column;
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    .exam-info {
+      .info-row {
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+  }
+}
+
+// If you need global styles outside the component wrapper
+.success-card,
+.error-card {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 48px 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.success-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border: 2px solid #4CAF50;
+}
+
+.error-card {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+  border: 2px solid #e74c3c;
+}
