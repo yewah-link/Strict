@@ -13,8 +13,11 @@ import { ProctoringSession } from './app/features/proctoring/proctoring-session/
 import { ProctorExamSelection } from './app/features/proctoring/proctor-exam-selection/proctor-exam-selection';
 import { ExamStatus } from './app/features/student-exams/exam-status/exam-status';
 import { ExamTake } from './app/features/student-exams/exam-take/exam-take';
+import { SubmissionManagement } from './app/features/results/submission-management/submission-management';
+import { GradeSubmission } from './app/features/results/grade-submission/grade-submission';
 
 export const routes: Routes = [
+  // Public Routes
   { path: '', component: Homepage },
   { path: 'login', component: Login },
   { path: 'signup', component: Signup },
@@ -23,25 +26,41 @@ export const routes: Routes = [
   { path: 'student-dashboard', component: StudentDashboard },
   { path: 'examiner-dashboard', component: ExaminerDashboard },
 
-  // Exam Management Routes
-  { path: 'exams', component: ExamList },
-  { path: 'exams/create', component: ExamCreate },
-  { path: 'exams/:id', component: ExamDetail },
-  { path: 'exams/:id/edit', component: ExamCreate },
+  // ===== EXAMINER ROUTES =====
 
-  // Student Exam Routes (order matters - more specific routes first!)
-  { path: 'exam-take', component: ExamTake },  // For link/session ID input
-  { path: 'exam-take/:id', component: ExamTake },  // For direct exam access
-  { path: 'exam-status/:id', component: ExamStatus },
+  // Exam Management Routes
+  { path: 'exams/create', component: ExamCreate },
+  { path: 'exams/:id/edit', component: ExamCreate },
+  { path: 'exams/:id', component: ExamDetail },
+  { path: 'exams', component: ExamList },
 
   // Question Management Routes
-  { path: 'exams/:examId/questions', component: QuestionList },
   { path: 'exams/:examId/questions/create', component: QuestionCreate },
   { path: 'exams/:examId/questions/:questionId/edit', component: QuestionCreate },
+  { path: 'exams/:examId/questions', component: QuestionList },
 
-  // Proctoring Routes (UPDATED - order matters!)
-  { path: 'proctoring', component: ProctorExamSelection },  // Exam selection page
-  { path: 'proctoring/session/:sessionId', component: ProctoringSession },  // Active session
+  // Submission and Grading Routes
+  { path: 'submissions/exam/:examId/submission/:submissionId', component: GradeSubmission },
+  { path: 'submissions/exam/:examId', component: SubmissionManagement },
+  { path: 'submissions', component: SubmissionManagement },
+
+  // Proctoring Routes
+  { path: 'proctoring/session/:sessionId', component: ProctoringSession },
+  { path: 'proctoring', component: ProctorExamSelection },
+
+  // ===== STUDENT ROUTES =====
+
+  { path: 'student/exam/take', component: ExamTake },
+
+
+  // Take exam (landing to input code/session)
+  { path: 'student/exam/take', component: ExamTake },
+
+  // Take exam with ID
+  { path: 'student/exam/:id/take', component: ExamTake },
+
+  // View Results
+  { path: 'student/results', component: ExamStatus },
 
   // Fallback
   { path: '**', redirectTo: '' }

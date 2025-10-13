@@ -38,7 +38,7 @@ export class Login {
         if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
           const user = response._embedded.user;
 
-          // Navigate based on role - FIXED ROUTES
+          // Navigate based on role
           if (this.authService.isExaminer()) {
             this.router.navigate(['/examiner-dashboard']);
           } else if (this.authService.isStudent()) {

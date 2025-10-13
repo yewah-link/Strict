@@ -1,0 +1,41 @@
+
+.sticky-top {
+  position: sticky;
+}
+
+.avatar {
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.list-group-item-primary {
+  background-color: #cfe2ff;
+  border-color: #9ec5fe;
+}
+
+.list-group-item-success {
+  background-color: #d1e7dd;
+  border-color: #a3cfbb;
+}
+
+.list-group-item-danger {
+  background-color: #f8d7da;
+  border-color: #f1aeb5;
+}
+
+.input-group-lg .form-control {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.card-header h5, .card-header h6 {
+  font-weight: 600;
+}
+
+.alert {
+  border-radius: 8px;
+}
+
+.btn-group .btn {
+  border-radius: 4px !important;
+}

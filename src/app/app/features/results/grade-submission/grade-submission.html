@@ -1,0 +1,352 @@
+@if (!isLoading && submission) {
+<div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-pencil-square me-2"></i>Grade Submission
+      </h2>
+      <p class="text-muted mb-0">{{ submission.examTitle }}</p>
+    </div>
+    <button class="btn btn-outline-secondary" (click)="backToList()">
+      <i class="bi bi-arrow-left me-2"></i>Back to List
+    </button>
+  </div>
+
+  <!-- Student Info Card -->
+  <div class="card shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+  <div class="card-body text-white">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <!-- ✅WITH REG NO ✅ -->
+        <div class="d-flex align-items-center mb-3">
+          <div class="avatar bg-white text-primary rounded-circle me-3 d-flex align-items-center justify-content-center"
+               style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: bold;">
+            {{ submission.studentName.charAt(0) }}
+          </div>
+          <div>
+            <h4 class="mb-1">{{ submission.studentName }}</h4>
+            <p class="mb-0 opacity-75"><strong>Reg No:</strong> {{ submission.studentRegNo }}</p>
+            <small class="opacity-75">{{ submission.studentEmail }}</small>
+          </div>
+        </div>
+          <div class="d-flex gap-4 flex-wrap">
+            <span><i class="bi bi-calendar me-2"></i>{{ formatDate(submission.submittedAt) }}</span>
+            <span><i class="bi bi-clock me-2"></i>Time Spent: {{ submission.timeSpent }}</span>
+            @if (submission.flaggedForReview) {
+            <span class="badge bg-danger">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ submission.violations }} Violation(s)
+            </span>
+            }
+          </div>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+          <div class="badge bg-white text-primary px-4 py-2 fs-5">
+            <strong>{{ totalScore }}</strong> / {{ submission.totalMarks }}
+          </div>
+          <div class="mt-2">
+            <span class="badge" [ngClass]="'bg-' + getGradeColor()">
+              {{ getPercentage() }}%
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Question Navigator Sidebar -->
+    <div class="col-lg-3">
+      <div class="card shadow-sm sticky-top" style="top: 20px;">
+        <div class="card-header bg-primary text-white">
+          <h6 class="mb-0">
+            <i class="bi bi-list-ol me-2"></i>Questions
+          </h6>
+        </div>
+        <div class="card-body p-2">
+          <div class="d-grid gap-2">
+            @for (question of submission.questions; track question; let i = $index) {
+            <button
+              class="btn btn-sm text-start d-flex justify-content-between align-items-center"
+              [ngClass]="i === currentQuestionIndex ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="goToQuestion(i)">
+              <span>
+                <i class="bi bi-circle-fill me-2"
+                   [ngClass]="getQuestionStatusClass(question)"
+                   style="font-size: 0.5rem;"></i>
+                Q{{ i + 1 }}
+              </span>
+              <span class="badge"
+                    [ngClass]="i === currentQuestionIndex ? 'bg-white text-primary' : 'bg-secondary'">
+                {{ question.marks }}m
+              </span>
+            </button>
+            }
+          </div>
+
+          <hr>
+
+          <!-- Legend -->
+          <div class="small">
+            <div class="d-flex align-items-center mb-1">
+              <i class="bi bi-circle-fill bg-success me-2" style="font-size: 0.5rem;"></i>
+              <span>Full marks</span>
+            </div>
+            <div class="d-flex align-items-center mb-1">
+              <i class="bi bi-circle-fill bg-info me-2" style="font-size: 0.5rem;"></i>
+              <span>Partial marks</span>
+            </div>
+            <div class="d-flex align-items-center mb-1">
+              <i class="bi bi-circle-fill bg-danger me-2" style="font-size: 0.5rem;"></i>
+              <span>No marks</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <i class="bi bi-circle-fill bg-warning me-2" style="font-size: 0.5rem;"></i>
+              <span>Not graded</span>
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- Quick Actions -->
+          <button class="btn btn-outline-primary btn-sm w-100 mb-2" (click)="autoGrade()">
+            <i class="bi bi-magic me-2"></i>Auto-Grade MCQs
+          </button>
+          <button
+            class="btn btn-success btn-sm w-100"
+            (click)="submitGrading()"
+            [disabled]="isSaving">
+            <i class="bi bi-check-circle me-2"></i>Submit Grading
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question Display and Grading Area -->
+    <div class="col-lg-9">
+      @if (getCurrentQuestion() && getCurrentAnswer()) {
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              Question {{ currentQuestionIndex + 1 }} of {{ submission.questions.length }}
+            </h5>
+            <div>
+              <span class="badge bg-primary me-2">{{ getCurrentQuestion()!.questionType }}</span>
+              <span class="badge bg-secondary">{{ getCurrentQuestion()!.marks }} marks</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Question Text -->
+          <div class="mb-4">
+            <h6 class="text-muted mb-2">Question:</h6>
+            <p class="fs-5">{{ getCurrentQuestion()!.questionText }}</p>
+          </div>
+
+          <!-- MCQ Options (if applicable) -->
+          @if (getCurrentQuestion()!.options) {
+          <div class="mb-4">
+            <h6 class="text-muted mb-2">Options:</h6>
+            <div class="list-group">
+              @for (option of getCurrentQuestion()!.options; track option) {
+              <div
+                class="list-group-item"
+                [ngClass]="{
+                  'list-group-item-success': option.text === getCurrentQuestion()!.correctAnswer,
+                  'list-group-item-primary': option.id === getCurrentAnswer()!.selectedChoiceId && option.isCorrect,
+                  'list-group-item-danger': option.id === getCurrentAnswer()!.selectedChoiceId && !option.isCorrect
+                }">
+                <i class="bi me-2"
+                   [ngClass]="{
+                     'bi-check-circle-fill text-success': option.text === getCurrentQuestion()!.correctAnswer,
+                     'bi-x-circle-fill text-danger': option.id === getCurrentAnswer()!.selectedChoiceId && !option.isCorrect,
+                     'bi-circle': option.id !== getCurrentAnswer()!.selectedChoiceId && option.text !== getCurrentQuestion()!.correctAnswer
+                   }"></i>
+                {{ option.text }}
+              </div>
+              }
+            </div>
+          </div>
+          }
+
+          <!-- Student Answer -->
+          <div class="mb-4">
+            <h6 class="text-muted mb-2">Student's Answer:</h6>
+            <div class="alert"
+                 [ngClass]="{
+                   'alert-success': getCurrentAnswer()!.isCorrect === true,
+                   'alert-danger': getCurrentAnswer()!.isCorrect === false,
+                   'alert-secondary': getCurrentAnswer()!.isCorrect === undefined
+                 }">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                  <p class="mb-0" style="white-space: pre-wrap;">{{ getCurrentAnswer()!.studentAnswer || '(No answer provided)' }}</p>
+                </div>
+                @if (getCurrentAnswer()!.isCorrect !== undefined) {
+                <div class="ms-3">
+                  <i class="bi fs-4"
+                     [ngClass]="getCurrentAnswer()!.isCorrect ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'"></i>
+                </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Correct Answer (if available) -->
+          @if (getCurrentQuestion()!.correctAnswer) {
+          <div class="mb-4">
+            <h6 class="text-muted mb-2">Correct Answer:</h6>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle me-2"></i>
+              {{ getCurrentQuestion()!.correctAnswer }}
+            </div>
+          </div>
+          }
+
+          <!-- Grading Section -->
+          <div class="card bg-light">
+            <div class="card-body">
+              <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                  <label class="form-label fw-bold">Marks Awarded</label>
+                  <div class="input-group input-group-lg">
+                    <input
+                      type="number"
+                      class="form-control"
+                      [min]="0"
+                      [max]="getCurrentQuestion()!.marks"
+                      [(ngModel)]="getCurrentAnswer()!.marksAwarded"
+                      (ngModelChange)="updateMarks(getCurrentAnswer()!, $event)"
+                      placeholder="0">
+                    <span class="input-group-text">/ {{ getCurrentQuestion()!.marks }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-8">
+                  <label class="form-label fw-bold">Feedback (Optional)</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="getCurrentAnswer()!.feedback"
+                    placeholder="Add feedback for the student...">
+                </div>
+              </div>
+
+              <!-- Quick Mark Buttons -->
+              <div class="mt-3 d-flex gap-2 flex-wrap">
+                <button
+                  class="btn btn-sm btn-outline-success"
+                  (click)="updateMarks(getCurrentAnswer()!, getCurrentQuestion()!.marks)">
+                  <i class="bi bi-check-circle me-1"></i>Full Marks
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-warning"
+                  (click)="updateMarks(getCurrentAnswer()!, Math.floor(getCurrentQuestion()!.marks / 2))">
+                  <i class="bi bi-dash-circle me-1"></i>Half Marks
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="updateMarks(getCurrentAnswer()!, 0)">
+                  <i class="bi bi-x-circle me-1"></i>Zero Marks
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Footer -->
+        <div class="card-footer bg-light">
+          <div class="d-flex justify-content-between align-items-center">
+            <button
+              class="btn btn-secondary"
+              [disabled]="currentQuestionIndex === 0"
+              (click)="previousQuestion()">
+              <i class="bi bi-arrow-left me-2"></i>Previous
+            </button>
+
+            <span class="text-muted">
+              Progress: {{ currentQuestionIndex + 1 }} / {{ submission.questions.length }}
+            </span>
+
+            <button
+              class="btn btn-primary"
+              [disabled]="currentQuestionIndex === submission.questions.length - 1"
+              (click)="nextQuestion()">
+              Next<i class="bi bi-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Summary Card -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h6 class="mb-0">
+            <i class="bi bi-bar-chart me-2"></i>Grading Summary
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 text-center">
+            <div class="col-md-3">
+              <h3 class="fw-bold text-primary">{{ totalScore }}</h3>
+              <small class="text-muted">Total Score</small>
+            </div>
+            <div class="col-md-3">
+              <h3 class="fw-bold text-success">{{ getPercentage() }}%</h3>
+              <small class="text-muted">Percentage</small>
+            </div>
+            <div class="col-md-3">
+              <h3 class="fw-bold text-info">{{ autoGradedCount }}</h3>
+              <small class="text-muted">Auto-Graded</small>
+            </div>
+            <div class="col-md-3">
+              <h3 class="fw-bold text-warning">{{ manualGradedCount }}</h3>
+              <small class="text-muted">Manual-Graded</small>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <button
+              class="btn btn-outline-secondary"
+              (click)="saveProgress()"
+              [disabled]="isSaving">
+              <i class="bi bi-save me-2"></i>
+              {{ isSaving ? 'Saving...' : 'Save Progress' }}
+            </button>
+
+            <button
+              class="btn btn-success btn-lg"
+              (click)="submitGrading()"
+              [disabled]="isSaving">
+              <i class="bi bi-check-circle me-2"></i>
+              {{ isSaving ? 'Submitting...' : 'Submit Grading' }}
+            </button>
+          </div>
+
+          @if (!isSubmissionComplete()) {
+          <div class="alert alert-warning mt-3 mb-0">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> Not all questions have been graded yet.
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Loading State -->
+@if (isLoading) {
+<div class="container-fluid py-5 text-center">
+  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p class="text-muted mt-3">Loading submission details...</p>
+</div>
+}
