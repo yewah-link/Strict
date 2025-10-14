@@ -1,0 +1,226 @@
+// Modal backdrop
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1040;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+// Modal container
+.modal {
+  &.show {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .modal-dialog {
+    animation: slideDown 0.3s ease-in-out;
+  }
+
+  .modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom: none;
+    padding: 1.25rem 1.5rem;
+
+    .modal-title {
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .modal-body {
+    padding: 2rem 1.5rem;
+
+    i.bi-check-circle-fill {
+      animation: scaleIn 0.5s ease-in-out;
+    }
+
+    h5 {
+      font-weight: 600;
+      color: #212529;
+    }
+
+    p {
+      font-size: 1rem;
+    }
+  }
+
+  .modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1.25rem 1.5rem;
+
+    .btn {
+      font-weight: 500;
+      border-radius: 6px;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      i {
+        font-size: 1rem;
+      }
+    }
+
+    .btn-primary {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+
+      &:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+      }
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      border-color: #6c757d;
+
+      &:hover {
+        background-color: #5c636a;
+        border-color: #565e64;
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Alert styling improvements
+.alert {
+  border-radius: 8px;
+  border: none;
+
+  &.alert-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+  }
+
+  &.alert-danger {
+    background-color: #f8d7da;
+    color: #842029;
+  }
+
+  &.alert-info {
+    background-color: #cff4fc;
+    color: #055160;
+  }
+}
+
+// Card improvements
+.card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .card-header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .card-body {
+    padding: 2rem 1.5rem;
+  }
+}
+
+// Button improvements
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+// Form improvements
+.form-control,
+.form-select {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+  &:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+}
+
+// Input group improvements
+.input-group {
+  .input-group-text {
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-radius: 6px 0 0 6px;
+  }
+
+  .form-control {
+    border-radius: 0;
+
+    &:last-child {
+      border-radius: 0 6px 6px 0;
+    }
+  }
+
+  .btn {
+    border-radius: 0 6px 6px 0;
+  }
+}

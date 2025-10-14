@@ -123,4 +123,31 @@ export class ResultService {
       { headers: this.getHeaders() }
     );
   }
+
+  markAllStudentsForExam(examId: number): Observable<GenericResponseV2<ResultDto[]>> {
+  return this.http.post<GenericResponseV2<ResultDto[]>>(
+    `${this.apiUrl}/mark-all/exam/${examId}`,
+    {},
+    { headers: this.getHeaders() }
+  );
+}
+
+markAndPublishExam(studentExamId: number, autoPublish: boolean = false): Observable<GenericResponseV2<ResultDto>> {
+  return this.http.post<GenericResponseV2<ResultDto>>(
+    `${this.apiUrl}/mark-and-publish/${studentExamId}?autoPublish=${autoPublish}`,
+    {},
+    { headers: this.getHeaders() }
+  );
+}
+
+submitGrade(studentExamId: number, score: number) {
+  return this.http.post<GenericResponseV2<ResultDto>>(
+    `${this.apiUrl}/submit-grade/${studentExamId}?score=${score}`,
+    {},
+    { headers: this.getHeaders() }
+  );
+}
+
+
+
 }

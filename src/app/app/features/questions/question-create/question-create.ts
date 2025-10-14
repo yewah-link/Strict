@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute} from '@angular/router';
-import { QuestionService, QuestionDto, ResponseStatusEnum, ChoicesDto } from '../../../core/services/question.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { QuestionService, QuestionDto, ResponseStatusEnum } from '../../../core/services/question.service';
 
 @Component({
   selector: 'app-question-create',
@@ -25,11 +25,14 @@ export class QuestionCreate implements OnInit {
   isLoading = false;
   successMessage = '';
   errorMessage = '';
+  questionCount = 1;
+  showSuccessModal = false;
 
+  // These values MUST match your QuestionType enum exactly
   questionTypes = [
     { value: 'MULTIPLE_CHOICE', label: 'Multiple Choice' },
     { value: 'TRUE_FALSE', label: 'True/False' },
-    { value: 'SHORT_ANSWER', label: 'Short Answer' },
+    { value: 'WRITTEN', label: 'Written' },
     { value: 'ESSAY', label: 'Essay' }
   ];
 
@@ -39,7 +42,7 @@ export class QuestionCreate implements OnInit {
     private route: ActivatedRoute
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.route.params.subscribe(params => {
       this.examId = +params['examId'];
 
@@ -48,6 +51,8 @@ export class QuestionCreate implements OnInit {
         this.questionId = +params['questionId'];
         this.loadQuestionData();
       } else {
+        // Load question count for new questions
+        this.loadQuestionCount();
         // Initialize with default choices for multiple choice
         this.addChoice();
         this.addChoice();
@@ -55,7 +60,26 @@ export class QuestionCreate implements OnInit {
     });
   }
 
-  loadQuestionData() {
+  loadQuestionCount(): void {
+    this.questionService.getQuestionsByExam(this.examId).subscribe({
+      next: (response) => {
+        if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
+          // Set question count to the next question number
+          this.questionCount = response._embedded.length + 1;
+        } else {
+          // Default to 1 if no questions exist
+          this.questionCount = 1;
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load question count:', error);
+        // Default to 1 on error
+        this.questionCount = 1;
+      }
+    });
+  }
+
+  loadQuestionData(): void {
     if (!this.questionId) return;
 
     this.isLoading = true;
@@ -79,7 +103,7 @@ export class QuestionCreate implements OnInit {
     });
   }
 
-  onQuestionTypeChange() {
+  onQuestionTypeChange(): void {
     // Reset choices when type changes
     if (this.questionData.type === 'TRUE_FALSE') {
       this.questionData.choices = [
@@ -95,28 +119,28 @@ export class QuestionCreate implements OnInit {
         ];
       }
     } else {
-      // For SHORT_ANSWER and ESSAY, no choices needed
+      // For WRITTEN and ESSAY, no choices needed
       this.questionData.choices = [];
     }
   }
 
-  addChoice() {
+  addChoice(): void {
     if (!this.questionData.choices) {
       this.questionData.choices = [];
     }
     this.questionData.choices.push({ choiceText: '', isCorrect: false });
   }
 
-  removeChoice(index: number) {
+  removeChoice(index: number): void {
     if (this.questionData.choices && this.questionData.choices.length > 2) {
       this.questionData.choices.splice(index, 1);
     }
   }
 
-  onCorrectChoiceChange(index: number) {
-    // For multiple choice, only one answer can be correct
-    if (this.questionData.type === 'MULTIPLE_CHOICE' || this.questionData.type === 'TRUE_FALSE') {
-      this.questionData.choices?.forEach((choice, i) => {
+  onCorrectChoiceChange(index: number): void {
+    // For multiple choice and true/false, only one answer can be correct
+    if (this.questionData.choices) {
+      this.questionData.choices.forEach((choice, i) => {
         choice.isCorrect = i === index;
       });
     }
@@ -126,7 +150,7 @@ export class QuestionCreate implements OnInit {
     return this.questionData.type === 'MULTIPLE_CHOICE' || this.questionData.type === 'TRUE_FALSE';
   }
 
-  onSubmit() {
+  onSubmit(): void {
     this.errorMessage = '';
     this.successMessage = '';
 
@@ -143,13 +167,8 @@ export class QuestionCreate implements OnInit {
         return;
       }
 
-      // Debug: Log choices to see what we have
-      console.log('Validating choices:', this.questionData.choices);
-
       const allChoicesFilled = this.questionData.choices?.every(c => {
-        const isFilled = c.choiceText && c.choiceText.trim().length > 0;
-        console.log(`Choice "${c.choiceText}" is filled: ${isFilled}`);
-        return isFilled;
+        return c.choiceText && c.choiceText.trim().length > 0;
       });
 
       if (!allChoicesFilled) {
@@ -168,9 +187,6 @@ export class QuestionCreate implements OnInit {
       choices: this.showChoices() ? this.questionData.choices : []
     };
 
-    // Debug: Log what we're sending
-    console.log('Sending question data:', questionToSend);
-
     const request = this.isEditMode && this.questionId
       ? this.questionService.updateQuestion(this.questionId, questionToSend)
       : this.questionService.addQuestion(this.examId, questionToSend);
@@ -178,31 +194,70 @@ export class QuestionCreate implements OnInit {
     request.subscribe({
       next: (response) => {
         this.isLoading = false;
-        console.log('Response:', response);
         if (response.status === ResponseStatusEnum.SUCCESS) {
           this.successMessage = this.isEditMode
             ? 'Question updated successfully!'
             : 'Question created successfully!';
-          setTimeout(() => {
-            this.router.navigate(['/exams', this.examId]);
-          }, 1500);
+
+          // Show modal only when creating (not editing)
+          if (!this.isEditMode) {
+            setTimeout(() => {
+              this.showSuccessModal = true;
+            }, 500);
+          } else {
+            setTimeout(() => {
+              this.goBackToExam();
+            }, 1500);
+          }
         } else {
           this.errorMessage = response.message || 'Failed to save question';
         }
       },
       error: (error) => {
         this.isLoading = false;
-        console.error('Error details:', error);
         this.errorMessage = error.error?.message || error.message || 'Failed to save question';
       }
     });
   }
 
-  onCancel() {
+  onAddAnotherQuestion(): void {
+    this.showSuccessModal = false;
+    this.addAnotherQuestion();
+  }
+
+  onFinishAdding(): void {
+    this.showSuccessModal = false;
+    this.goBackToExam();
+  }
+
+  addAnotherQuestion(): void {
+    // Increment question count for the next question
+    this.questionCount++;
+
+    // Reset the form to initial state
+    this.questionData = {
+      text: '',
+      type: 'MULTIPLE_CHOICE',
+      marks: 1,
+      choices: [
+        { choiceText: '', isCorrect: false },
+        { choiceText: '', isCorrect: false }
+      ]
+    };
+
+    // Clear messages - don't show success message
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  goBackToExam(): void {
     this.router.navigate(['/exams', this.examId]);
   }
 
-  getChoiceLetter(index: number): string {
-    return String.fromCharCode(65 + index); // 65 is ASCII for 'A'
+  onCancel(): void {
+    this.goBackToExam();
   }
 }

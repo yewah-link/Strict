@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { StudentExamService, StudentExamDto, GenericResponseV2, ResponseStatusEnum, ChoicesDto } from '../../../core/services/student.service.exam';
+import { ResultDto, ResultService } from '../../../core/services/result.service';
 
 interface Question {
   id: number;
@@ -40,6 +41,8 @@ interface SubmissionDetail {
   violations?: number;
   questions: Question[];
   answers: Answer[];
+  isAlreadyGraded: boolean;
+  gradedAt?: string;
 }
 
 @Component({
@@ -68,7 +71,8 @@ export class GradeSubmission implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private studentExamService: StudentExamService
+    private studentExamService: StudentExamService,
+    private resultService: ResultService
   ) {}
 
   ngOnInit(): void {
@@ -109,6 +113,10 @@ export class GradeSubmission implements OnInit {
   }
 
   mapStudentExamToSubmission(studentExam: StudentExamDto): void {
+    // Check if already graded - primarily check status, then check if result exists with obtainedMarks (including 0)
+    const isAlreadyGraded = studentExam.status === 'GRADED' || 
+                            !!(studentExam.result && (studentExam.result.obtainedMarks !== null && studentExam.result.obtainedMarks !== undefined));
+
     this.submission = {
       id: studentExam.id || 0,
       examId: studentExam.examId || 0,
@@ -119,11 +127,13 @@ export class GradeSubmission implements OnInit {
       studentRegNo: studentExam.studentRegNo || '',
       submittedAt: studentExam.submittedAt || '',
       totalMarks: studentExam.examTotalMarks || 0,
-      score: studentExam.result?.obtainedMarks || null,
+      score: studentExam.result?.obtainedMarks ?? null,
       status: this.mapExamStatusToSubmissionStatus(studentExam.status || 'SUBMITTED'),
       timeSpent: this.calculateTimeSpent(studentExam.startedAt, studentExam.submittedAt),
       flaggedForReview: (studentExam.violations?.length || 0) > 0,
       violations: studentExam.violations?.length || 0,
+      isAlreadyGraded: isAlreadyGraded,
+      gradedAt: (studentExam.result as any)?.gradedAt || studentExam.submittedAt, // Fallback to submittedAt if gradedAt not available
       questions: (studentExam.questions || []).map(q => {
         const correctChoice = q.choices?.find(c => c.isCorrect);
         return {
@@ -161,7 +171,7 @@ export class GradeSubmission implements OnInit {
           selectedChoiceId: ans.selectedChoiceId,
           isCorrect: ans.isCorrect,
           marksAwarded: ans.obtainedMarks !== undefined ? ans.obtainedMarks : null,
-          feedback: ''
+          feedback: (ans as any).feedback || '' // Use type assertion since feedback might not be in DTO
         };
       })
     };
@@ -317,6 +327,12 @@ export class GradeSubmission implements OnInit {
   submitGrading(): void {
     if (!this.submission) return;
 
+    if (this.submission.isAlreadyGraded) {
+      if (!confirm('This submission has already been graded. Do you want to regrade it?')) {
+        return;
+      }
+    }
+
     if (!this.isSubmissionComplete()) {
       if (!confirm('Not all questions have been graded. Are you sure you want to submit?')) {
         return;
@@ -324,18 +340,25 @@ export class GradeSubmission implements OnInit {
     }
 
     this.isSaving = true;
+    const studentExamId = this.submission.id;
+    const finalScore = this.totalScore;
 
-    this.submission.status = 'GRADED';
-    this.submission.score = this.totalScore;
-
-    // TODO: Implement submit grading API call
-    // You'll need to create a method in the service to finalize grading
-
-    setTimeout(() => {
-      this.isSaving = false;
-      alert(`Grading submitted successfully! Final Score: ${this.totalScore}/${this.submission!.totalMarks}`);
-      this.router.navigate(['/submissions'], { queryParams: { examId: this.examId } });
-    }, 500);
+    this.resultService.submitGrade(studentExamId, finalScore).subscribe({
+      next: (response: GenericResponseV2<ResultDto>) => {
+        this.isSaving = false;
+        if (response.status === ResponseStatusEnum.SUCCESS) {
+          alert(`Grading submitted successfully! Final Score: ${finalScore}/${this.submission!.totalMarks}`);
+          this.router.navigate(['/submissions'], { queryParams: { examId: this.examId } });
+        } else {
+          alert('Failed to submit grading: ' + response.message);
+        }
+      },
+      error: (error: any) => {
+        this.isSaving = false;
+        alert('Network error while submitting grading.');
+        console.error(error);
+      }
+    });
   }
 
   backToList(): void {
