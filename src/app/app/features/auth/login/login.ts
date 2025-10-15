@@ -38,6 +38,25 @@ export class Login {
         if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
           const user = response._embedded.user;
 
+          // Store user info in localStorage
+          if (user) {
+            if (user.email) {
+              localStorage.setItem('userEmail', user.email);
+            }
+            if (user.fullName) {
+              localStorage.setItem('userName', user.fullName);
+            }
+            if (user.username) {
+              localStorage.setItem('username', user.username);
+            }
+            if (user.role) {
+              localStorage.setItem('userRole', user.role);
+            }
+            if (user.regNo) {
+              localStorage.setItem('regNo', user.regNo);
+            }
+          }
+
           // Navigate based on role
           if (this.authService.isExaminer()) {
             this.router.navigate(['/examiner-dashboard']);

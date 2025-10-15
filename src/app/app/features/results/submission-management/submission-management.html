@@ -1,30 +1,31 @@
-<div class="container-fluid py-4">
+<div class="container-fluid p-4">
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h2 class="fw-bold mb-1">
-        <i class="bi bi-clipboard-check me-2"></i>
-        {{ viewMode === 'exams' ? 'Submission Management' : 'Review Submissions' }}
-      </h2>
-      @if (viewMode === 'exams') {
-        <p class="text-muted mb-0">Select an exam to review and grade student submissions</p>
-      }
-      @if (viewMode === 'submissions' && selectedExam) {
-        <p class="text-muted mb-0">
-          {{ selectedExam.subject }} • {{ selectedExam.totalQuestions }} Questions • {{ selectedExam.totalMarks }} Marks
-        </p>
-      }
-    </div>
+  <div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="fw-bold mb-2">
+          {{ viewMode === 'exams' ? 'Submission Management' : 'Review Submissions' }}
+        </h2>
+        @if (viewMode === 'exams') {
+          <p class="text-muted">Select an exam to review and grade student submissions</p>
+        }
+        @if (viewMode === 'submissions' && selectedExam) {
+          <p class="text-muted">
+            {{ selectedExam.subject }} • {{ selectedExam.totalQuestions }} Questions • {{ selectedExam.totalMarks }} Marks
+          </p>
+        }
+      </div>
 
-    <div class="d-flex gap-2">
-      @if (viewMode === 'submissions') {
-        <button class="btn btn-outline-secondary" (click)="backToExams()">
-          <i class="bi bi-arrow-left me-2"></i>Back to Exams
-        </button>
-        <button class="btn btn-outline-primary" (click)="exportToCSV()">
-          <i class="bi bi-download me-2"></i>Export CSV
-        </button>
-      }
+      <div class="d-flex gap-2">
+        @if (viewMode === 'submissions') {
+          <button class="btn btn-outline-secondary" (click)="backToExams()">
+            <i class="bi bi-arrow-left me-2"></i>Back to Exams
+          </button>
+          <button class="btn btn-outline-primary" (click)="exportToCSV()">
+            <i class="bi bi-download me-2"></i>Export CSV
+          </button>
+        }
+      </div>
     </div>
   </div>
 
@@ -43,35 +44,43 @@
     <!-- Quick Stats -->
     <div class="row g-3 mb-4">
       <div class="col-md-3">
-        <div class="card shadow-sm p-3 text-center">
-          <h6 class="text-muted mb-2">Total Exams</h6>
-          <h3 class="fw-bold text-primary mb-0">{{ exams.length }}</h3>
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Total Exams</p>
+            <h2 class="fw-bold mb-0">{{ exams.length }}</h2>
+          </div>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card shadow-sm p-3 text-center">
-          <h6 class="text-muted mb-2">Active Exams</h6>
-          <h3 class="fw-bold text-success mb-0">{{ getActiveExamsCount() }}</h3>
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Active Exams</p>
+            <h2 class="fw-bold text-success mb-0">{{ getActiveExamsCount() }}</h2>
+          </div>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card shadow-sm p-3 text-center">
-          <h6 class="text-muted mb-2">Total Submissions</h6>
-          <h3 class="fw-bold text-info mb-0">{{ getTotalSubmissionsCount() }}</h3>
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Total Submissions</p>
+            <h2 class="fw-bold text-info mb-0">{{ getTotalSubmissionsCount() }}</h2>
+          </div>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card shadow-sm p-3 text-center">
-          <h6 class="text-muted mb-2">Pending Reviews</h6>
-          <h3 class="fw-bold text-warning mb-0">{{ getTotalPendingCount() }}</h3>
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Pending Reviews</p>
+            <h2 class="fw-bold text-warning mb-0">{{ getTotalPendingCount() }}</h2>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Exams List -->
-    <div class="card shadow-sm">
+    <div class="card shadow-sm border-0">
       <div class="card-body">
-        <h5 class="card-title mb-3">Select an Exam to Review</h5>
+        <h5 class="card-title mb-3 fw-semibold">Select an Exam to Review</h5>
 
         @if (exams.length === 0) {
           <div class="text-center py-5">
@@ -86,11 +95,11 @@
         <div class="row g-3">
           @for (exam of exams; track exam.id) {
             <div class="col-md-6 col-lg-4">
-              <div class="card h-100 shadow-sm hover-shadow cursor-pointer" (click)="selectExam(exam)">
+              <div class="card h-100 shadow-sm border-0 hover-shadow cursor-pointer" (click)="selectExam(exam)">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="flex-grow-1">
-                      <h6 class="card-title fw-bold mb-1">{{ exam.title }}</h6>
+                      <h6 class="card-title fw-semibold mb-1">{{ exam.title }}</h6>
                       <small class="text-muted">
                         <i class="bi bi-tag me-1"></i>{{ exam.subject }}
                       </small>
@@ -103,7 +112,7 @@
                   <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                       <small class="text-muted">Grading Progress</small>
-                      <small class="fw-bold">{{ getGradingProgress(exam) }}%</small>
+                      <small class="fw-semibold">{{ getGradingProgress(exam) }}%</small>
                     </div>
                     <div class="progress" style="height: 8px;">
                       <div
@@ -131,7 +140,7 @@
                     </span>
                   </div>
                 </div>
-                <div class="card-footer bg-light">
+                <div class="card-footer bg-light border-top-0">
                   <button class="btn btn-sm btn-primary w-100">
                     <i class="bi bi-pencil-square me-2"></i>Review Submissions
                   </button>
@@ -147,47 +156,47 @@
   <!-- SUBMISSIONS VIEW -->
   @if (!isLoading && viewMode === 'submissions' && selectedExam) {
     <!-- Exam Info Banner -->
-    <div class="card shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-      <div class="card-body text-white">
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body py-3">
         <div class="row align-items-center">
           <div class="col-md-8">
-            <h4 class="mb-2">{{ selectedExam.title }}</h4>
-            <div class="d-flex gap-4 flex-wrap">
-              <span><i class="bi bi-tag me-2"></i>{{ selectedExam.subject }}</span>
-              <span><i class="bi bi-list-check me-2"></i>{{ selectedExam.totalQuestions }} Questions</span>
-              <span><i class="bi bi-trophy me-2"></i>{{ selectedExam.totalMarks }} Marks</span>
-              <span><i class="bi bi-clock me-2"></i>{{ selectedExam.duration }} minutes</span>
+            <h5 class="mb-2 fw-semibold">{{ selectedExam.title }}</h5>
+            <div class="d-flex gap-4 flex-wrap text-muted small">
+              <span><i class="bi bi-tag me-1"></i>{{ selectedExam.subject }}</span>
+              <span><i class="bi bi-list-check me-1"></i>{{ selectedExam.totalQuestions }} Questions</span>
+              <span><i class="bi bi-trophy me-1"></i>{{ selectedExam.totalMarks }} Marks</span>
+              <span><i class="bi bi-clock me-1"></i>{{ selectedExam.duration }} minutes</span>
             </div>
           </div>
           <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <h2 class="mb-0">{{ selectedExam.totalSubmissions }}</h2>
-            <small>Total Submissions</small>
+            <h3 class="mb-0 fw-bold">{{ selectedExam.totalSubmissions }}</h3>
+            <small class="text-muted">Total Submissions</small>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Filters and Search -->
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm border-0 mb-4">
       <div class="card-body">
         <div class="row g-3">
           <div class="col-md-4">
-            <label class="form-label small text-muted">Search Student</label>
+            <label class="form-label small text-muted fw-semibold">SEARCH STUDENT</label>
             <div class="input-group">
-              <span class="input-group-text">
+              <span class="input-group-text bg-white">
                 <i class="bi bi-search"></i>
               </span>
               <input
                 type="text"
                 class="form-control"
-                placeholder="Search by name or email..."
+                placeholder="Search by name, email or reg no..."
                 [(ngModel)]="searchQuery"
                 (input)="onSearchChange()">
             </div>
           </div>
 
           <div class="col-md-2">
-            <label class="form-label small text-muted">Status</label>
+            <label class="form-label small text-muted fw-semibold">STATUS</label>
             <select
               class="form-select"
               [(ngModel)]="statusFilter"
@@ -200,7 +209,7 @@
           </div>
 
           <div class="col-md-2">
-            <label class="form-label small text-muted">Sort By</label>
+            <label class="form-label small text-muted fw-semibold">SORT BY</label>
             <select
               class="form-select"
               [(ngModel)]="sortBy"
@@ -212,7 +221,7 @@
           </div>
 
           <div class="col-md-2">
-            <label class="form-label small text-muted">Order</label>
+            <label class="form-label small text-muted fw-semibold">ORDER</label>
             <button
               class="btn btn-outline-secondary w-100"
               (click)="toggleSortOrder()">
@@ -222,8 +231,8 @@
           </div>
 
           <div class="col-md-2">
-            <label class="form-label small text-muted">Results</label>
-            <div class="alert alert-info mb-0 py-2 text-center">
+            <label class="form-label small text-muted fw-semibold">RESULTS</label>
+            <div class="alert alert-info mb-0 py-2 text-center border border-info">
               <strong>{{ filteredSubmissions.length }}</strong> found
             </div>
           </div>
@@ -232,7 +241,7 @@
     </div>
 
     <!-- Submissions Table -->
-    <div class="card shadow-sm">
+    <div class="card shadow-sm border-0">
       <div class="card-body">
         @if (filteredSubmissions.length === 0) {
           <div class="text-center py-5">
@@ -246,7 +255,8 @@
             <table class="table table-hover align-middle mb-0">
               <thead class="table-light">
                 <tr>
-                  <th>Student</th>
+                  <th>#</th>
+                  <th>Reg No</th>
                   <th>Submitted</th>
                   <th class="text-center">Questions</th>
                   <th class="text-center">Time Spent</th>
@@ -256,16 +266,19 @@
                 </tr>
               </thead>
               <tbody>
-                @for (submission of filteredSubmissions; track submission.id) {
+                @for (submission of filteredSubmissions; track submission.id; let i = $index) {
                   <tr [class.table-warning]="submission.flaggedForReview">
                     <td>
-                      <div class="d-flex align-items-center">
-                        <div class="avatar bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center"
-                             style="width: 40px; height: 40px; font-size: 1rem;">
+                      <span class="fw-semibold text-muted">{{ i + 1 }}</span>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                             style="width: 32px; height: 32px; font-size: 0.85rem; flex-shrink: 0;">
                           {{ submission.studentName.charAt(0) }}
                         </div>
                         <div>
-                          <div class="fw-bold">{{ submission.studentName }}</div>
+                          <div class="fw-semibold">{{ submission.studentRegNo }}</div>
                           <small class="text-muted">{{ submission.studentEmail }}</small>
                           @if (submission.flaggedForReview) {
                             <div>
@@ -279,7 +292,7 @@
                       </div>
                     </td>
                     <td>
-                      <small>{{ formatDate(submission.submittedAt) }}</small>
+                      <small class="text-muted">{{ formatDate(submission.submittedAt) }}</small>
                     </td>
                     <td class="text-center">
                       <span class="badge bg-info">
@@ -293,7 +306,7 @@
                     </td>
                     <td class="text-center">
                       @if (submission.score !== null) {
-                        <span class="badge bg-success fs-6">
+                        <span class="badge bg-success">
                           {{ submission.score }}/{{ submission.totalMarks }}
                         </span>
                       } @else {
@@ -342,27 +355,35 @@
     <!-- Summary Statistics -->
     <div class="row g-3 mt-4">
       <div class="col-md-3">
-        <div class="card shadow-sm p-3 text-center">
-          <h6 class="text-muted mb-2">Average Score</h6>
-          <h4 class="fw-bold text-primary mb-0">{{ getAverageScore() }}%</h4>
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Average Score</p>
+            <h3 class="fw-bold text-primary mb-0">{{ getAverageScore() }}%</h3>
+          </div>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card shadow-sm p-3 text-center">
-          <h6 class="text-muted mb-2">Pending</h6>
-          <h4 class="fw-bold text-warning mb-0">{{ getPendingSubmissionsCount() }}</h4>
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Pending</p>
+            <h3 class="fw-bold text-warning mb-0">{{ getPendingSubmissionsCount() }}</h3>
+          </div>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card shadow-sm p-3 text-center">
-          <h6 class="text-muted mb-2">Graded</h6>
-          <h4 class="fw-bold text-success mb-0">{{ getGradedSubmissionsCount() }}</h4>
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Graded</p>
+            <h3 class="fw-bold text-success mb-0">{{ getGradedSubmissionsCount() }}</h3>
+          </div>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card shadow-sm p-3 text-center">
-          <h6 class="text-muted mb-2">Flagged</h6>
-          <h4 class="fw-bold text-danger mb-0">{{ getFlaggedSubmissionsCount() }}</h4>
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Flagged</p>
+            <h3 class="fw-bold text-danger mb-0">{{ getFlaggedSubmissionsCount() }}</h3>
+          </div>
         </div>
       </div>
     </div>
