@@ -1,288 +1,344 @@
-<div class="container py-4">
-  <div class="text-center mb-4">
-    <h2 class="fw-bold">🧑‍🏫 Examiner Dashboard</h2>
-    <p class="text-muted">Manage your exams and monitor student activity.</p>
-  </div>
-
-  <div class="row g-4">
-    <div class="col-md-3">
-      <div class="card shadow-sm p-3 h-100">
-        <h4>📝 Create Exam</h4>
-        <p>Design and publish a new online exam.</p>
-        <button class="btn btn-primary w-100" routerLink="/exams/create">Create Exam</button>
-      </div>
+<!-- Sidebar Navigation -->
+<div class="d-flex vh-100">
+  <!-- Sidebar -->
+  <nav class="sidebar bg-white border-end" [ngClass]="{'collapsed': !isSidebarOpen}">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header border-bottom p-3 d-flex justify-content-between align-items-center">
+      @if (isSidebarOpen) {
+        <h5 class="mb-0 fw-bold">Examiner Portal</h5>
+      }
+      <button class="btn btn-link text-dark p-0" (click)="toggleSidebar()">
+        <i class="bi" [ngClass]="isSidebarOpen ? 'bi-x-lg' : 'bi-list'" style="font-size: 1.2rem;"></i>
+      </button>
     </div>
 
-    <div class="col-md-3">
-      <div class="card shadow-sm p-3 h-100">
-        <h4>📋 Manage Exams</h4>
-        <p>View, edit, or delete existing exams.</p>
-        <button class="btn btn-warning w-100" routerLink="/exams">Manage Exams</button>
-      </div>
+    <!-- Navigation Menu -->
+    <div class="sidebar-menu flex-grow-1 py-3">
+      <a
+        class="sidebar-item d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
+        [class.active]="activeSection === 'dashboard'"
+        routerLink="/examiner-dashboard"
+        role="button">
+        <i class="bi bi-house-door fs-5"></i>
+        @if (isSidebarOpen) {
+          <span>Dashboard</span>
+        }
+      </a>
+
+      <a
+        class="sidebar-item d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
+        [class.active]="activeSection === 'create-exam'"
+        routerLink="/exams/create"
+        role="button">
+        <i class="bi bi-file-earmark-plus fs-5"></i>
+        @if (isSidebarOpen) {
+          <span>Create Exam</span>
+        }
+      </a>
+
+      <a
+        class="sidebar-item d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
+        [class.active]="activeSection === 'manage-exams'"
+        routerLink="/exams"
+        role="button">
+        <i class="bi bi-clipboard-check fs-5"></i>
+        @if (isSidebarOpen) {
+          <span>Manage Exams</span>
+        }
+      </a>
+
+      <a
+        class="sidebar-item d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
+        [class.active]="activeSection === 'submissions'"
+        routerLink="/submissions"
+        role="button">
+        <i class="bi bi-check-square fs-5"></i>
+        @if (isSidebarOpen) {
+          <span>Submissions</span>
+        }
+      </a>
+
+      <a
+        class="sidebar-item d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
+        [class.active]="activeSection === 'proctoring'"
+        routerLink="/proctoring"
+        role="button">
+        <i class="bi bi-camera-video fs-5"></i>
+        @if (isSidebarOpen) {
+          <span>Proctoring</span>
+        }
+      </a>
+
+      <a
+        class="sidebar-item d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
+        [class.active]="activeSection === 'results'"
+        routerLink="/results"
+        role="button">
+        <i class="bi bi-clipboard-check fs-5"></i>
+        @if (isSidebarOpen) {
+          <span>Results</span>
+        }
+      </a>
     </div>
 
-    <div class="col-md-3">
-      <div class="card shadow-sm p-3 h-100">
-        <h4> Submissions Management</h4>
-        <p>Review and grade student submissions.</p>
-        <button class="btn btn-success w-100" routerLink="/submissions">Manage Submission</button>
-      </div>
-    </div>
-
-    <div class="col-md-3">
-      <div class="card shadow-sm p-3 h-100">
-        <h4>📡 Proctoring</h4>
-        <p>Monitor live exam sessions for violations.</p>
-        <button class="btn btn-danger w-100" routerLink="/proctoring">Start Proctoring</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Quick Stats Section -->
-  <div class="row g-4 mt-4">
-    <div class="col-12">
-      <h4 class="fw-bold mb-3">📊 Quick Stats</h4>
-    </div>
-
-    <div class="col-md-3">
-      <div class="card shadow-sm p-3 text-center">
-        <h5 class="text-muted mb-2">Total Exams</h5>
-        <h2 class="fw-bold text-primary mb-0">12</h2>
-      </div>
-    </div>
-
-    <div class="col-md-3">
-      <div class="card shadow-sm p-3 text-center">
-        <h5 class="text-muted mb-2">Active Exams</h5>
-        <h2 class="fw-bold text-success mb-0">3</h2>
-      </div>
-    </div>
-
-    <div class="col-md-3">
-      <div class="card shadow-sm p-3 text-center">
-        <h5 class="text-muted mb-2">Students Enrolled</h5>
-        <h2 class="fw-bold text-info mb-0">156</h2>
-      </div>
-    </div>
-
-    <div class="col-md-3">
-      <div class="card shadow-sm p-3 text-center">
-        <h5 class="text-muted mb-2">Pending Reviews</h5>
-        <h2 class="fw-bold text-warning mb-0">8</h2>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pending Submissions Section -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold mb-0">
-          <i class="bi bi-clipboard-check me-2"></i>Pending Submissions
-        </h4>
-        <button class="btn btn-outline-primary btn-sm" routerLink="/submissions">
-          View All Submissions
-        </button>
-      </div>
-
-      <div class="card shadow-sm">
-        <div class="card-body">
-          @if (pendingSubmissions.length === 0) {
-            <div class="text-center py-4">
-              <i class="bi bi-inbox fs-1 text-muted"></i>
-              <p class="text-muted mt-2">No pending submissions at the moment</p>
-            </div>
-          } @else {
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Exam Name</th>
-                    <th>Student</th>
-                    <th>Submitted At</th>
-                    <th>Questions</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (submission of pendingSubmissions; track submission.id) {
-                    <tr>
-                      <td>
-                        <strong>{{ submission.examTitle }}</strong>
-                      </td>
-                      <td>
-                        <div class="d-flex align-items-center">
-                          <div class="avatar bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center"
-                               style="width: 32px; height: 32px; font-size: 0.9rem;">
-                            {{ submission.studentName.charAt(0) }}
-                          </div>
-                          <div>
-                            <div class="fw-medium">{{ submission.studentName }}</div>
-                            <small class="text-muted">{{ submission.studentEmail }}</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <small>{{ submission.submittedAt }}</small>
-                      </td>
-                      <td>
-                        <span class="badge bg-info">
-                          {{ submission.answeredQuestions }}/{{ submission.totalQuestions }}
-                        </span>
-                      </td>
-                      <td>
-                        <span class="badge bg-warning">
-                          <i class="bi bi-clock-history me-1"></i>Pending
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          class="btn btn-sm btn-primary"
-                          [routerLink]="['/submissions/exam', submission.examId, 'submission', submission.id]">
-                          <i class="bi bi-pencil-square me-1"></i>Grade Now
-                        </button>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
+    <!-- User Profile -->
+    <div class="sidebar-footer border-top p-3">
+      <div class="d-flex align-items-center gap-2 position-relative">
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+            style="width: 36px; height: 36px; font-size: 0.9rem; font-weight: 600;">
+          {{ getUserInitial() }}
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Exams Requiring Attention -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <h4 class="fw-bold mb-3">
-        <i class="bi bi-exclamation-triangle me-2"></i>Exams Requiring Attention
-      </h4>
-
-      <div class="row g-3">
-        @for (exam of examsRequiringAttention; track exam.id) {
-          <div class="col-md-6">
-            <div class="card shadow-sm">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <div>
-                    <h5 class="card-title mb-1">{{ exam.title }}</h5>
-                    <small class="text-muted">
-                      <i class="bi bi-calendar me-1"></i>{{ exam.deadline }}
-                    </small>
-                  </div>
-                  <span class="badge bg-warning">{{ exam.pendingCount }} pending</span>
-                </div>
-
-                <div class="progress mb-3" style="height: 8px;">
-                  <div
-                    class="progress-bar bg-success"
-                    [style.width.%]="exam.gradedPercentage"
-                    role="progressbar">
-                  </div>
-                  <div
-                    class="progress-bar bg-warning"
-                    [style.width.%]="exam.pendingPercentage"
-                    role="progressbar">
-                  </div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center">
-                  <small class="text-muted">
-                    {{ exam.gradedCount }}/{{ exam.totalSubmissions }} graded
-                  </small>
-                  <button
-                    class="btn btn-sm btn-outline-primary"
-                    [routerLink]="['/submissions/exam', exam.id]">
-                    <i class="bi bi-arrow-right me-1"></i>Grade Submissions
-                  </button>
-                </div>
-              </div>
+        @if (isSidebarOpen) {
+          <div class="flex-grow-1 text-truncate">
+            <div class="fw-medium small">{{ getDisplayName() }}</div>
+            <div class="text-muted text-truncate" style="font-size: 0.75rem;" [title]="userInfo.email">
+              {{ userInfo.email }}
             </div>
           </div>
+          <button
+            class="btn btn-link text-danger p-0 ms-2"
+            (click)="logout()"
+            title="Logout"
+            style="font-size: 1.2rem;">
+            <i class="bi bi-box-arrow-right"></i>
+          </button>
         }
       </div>
     </div>
-  </div>
+  </nav>
 
-  <!-- Recent Activity Section -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <h4 class="fw-bold mb-3">🕒 Recent Activity</h4>
-      <div class="card shadow-sm">
-        <div class="list-group list-group-flush">
-          <div class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <strong>Mathematics Final Exam</strong>
-                <p class="mb-0 text-muted small">Started 2 hours ago • 45 students participating</p>
+  <!-- Main Content Area -->
+  <main class="flex-grow-1 overflow-auto bg-light">
+    <div class="container-fluid p-4">
+
+      <!-- Dashboard Content -->
+      @if (activeSection === 'dashboard') {
+        <div>
+          <!-- Header -->
+          <div class="mb-4">
+            <h2 class="fw-bold mb-2">Dashboard</h2>
+            <p class="text-muted">Manage your exams and monitor student activity.</p>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-3">
+              <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                  <p class="text-muted small mb-1">Total Exams</p>
+                  <h2 class="fw-bold mb-0">12</h2>
+                </div>
               </div>
-              <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-primary" routerLink="/exams/1">View</button>
-                <button class="btn btn-sm btn-primary" [routerLink]="['/submissions/exam', 1]">
-                  <i class="bi bi-pencil-square"></i>
-                </button>
+            </div>
+            <div class="col-md-3">
+              <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                  <p class="text-muted small mb-1">Active Exams</p>
+                  <h2 class="fw-bold text-success mb-0">3</h2>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                  <p class="text-muted small mb-1">Students Enrolled</p>
+                  <h2 class="fw-bold text-info mb-0">156</h2>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                  <p class="text-muted small mb-1">Pending Reviews</p>
+                  <h2 class="fw-bold text-warning mb-0">8</h2>
+                </div>
               </div>
             </div>
           </div>
-          <div class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <strong>Physics Midterm</strong>
-                <p class="mb-0 text-muted small">Ends in 3 hours • 32 students participating</p>
-              </div>
-              <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-primary" routerLink="/exams/2">View</button>
-                <button class="btn btn-sm btn-primary" [routerLink]="['/submissions/exam', 2]">
-                  <i class="bi bi-pencil-square"></i>
-                </button>
+
+          <!-- Pending Submissions -->
+          <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-clipboard-check me-2"></i>Pending Submissions
+              </h5>
+              <button class="btn btn-sm btn-outline-primary" routerLink="/submissions">
+                View All
+              </button>
+            </div>
+            <div class="card-body">
+              @if (pendingSubmissions.length === 0) {
+                <div class="text-center py-5">
+                  <i class="bi bi-inbox fs-1 text-muted"></i>
+                  <p class="text-muted mt-2">No pending submissions at the moment</p>
+                </div>
+              } @else {
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Exam Name</th>
+                        <th>Student</th>
+                        <th>Submitted At</th>
+                        <th>Questions</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (submission of pendingSubmissions; track submission.id) {
+                        <tr>
+                          <td>
+                            <strong>{{ submission.examTitle }}</strong>
+                          </td>
+                          <td>
+                            <div class="d-flex align-items-center">
+                              <div class="avatar bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center"
+                                   style="width: 32px; height: 32px; font-size: 0.9rem;">
+                                {{ submission.studentName.charAt(0) }}
+                              </div>
+                              <div>
+                                <div class="fw-medium">{{ submission.studentName }}</div>
+                                <small class="text-muted">{{ submission.studentEmail }}</small>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <small>{{ submission.submittedAt }}</small>
+                          </td>
+                          <td>
+                            <span class="badge bg-info">
+                              {{ submission.answeredQuestions }}/{{ submission.totalQuestions }}
+                            </span>
+                          </td>
+                          <td>
+                            <span class="badge bg-warning">
+                              <i class="bi bi-clock-history me-1"></i>Pending
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              class="btn btn-sm btn-primary"
+                              [routerLink]="['/submissions/exam', submission.examId, 'submission', submission.id]">
+                              <i class="bi bi-pencil-square me-1"></i>Grade Now
+                            </button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Exams Requiring Attention -->
+          <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-exclamation-triangle me-2"></i>Exams Requiring Attention
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                @for (exam of examsRequiringAttention; track exam.id) {
+                  <div class="col-md-6">
+                    <div class="card border">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                          <div>
+                            <h6 class="card-title mb-1">{{ exam.title }}</h6>
+                            <small class="text-muted">
+                              <i class="bi bi-calendar me-1"></i>{{ exam.deadline }}
+                            </small>
+                          </div>
+                          <span class="badge bg-warning">{{ exam.pendingCount }} pending</span>
+                        </div>
+
+                        <div class="progress mb-3" style="height: 8px;">
+                          <div
+                            class="progress-bar bg-success"
+                            [style.width.%]="exam.gradedPercentage"
+                            role="progressbar">
+                          </div>
+                          <div
+                            class="progress-bar bg-warning"
+                            [style.width.%]="exam.pendingPercentage"
+                            role="progressbar">
+                          </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                          <small class="text-muted">
+                            {{ exam.gradedCount }}/{{ exam.totalSubmissions }} graded
+                          </small>
+                          <button
+                            class="btn btn-sm btn-outline-primary"
+                            [routerLink]="['/submissions/exam', exam.id]">
+                            <i class="bi bi-arrow-right me-1"></i>Grade
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
               </div>
             </div>
           </div>
-          <div class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <strong>Chemistry Quiz</strong>
-                <p class="mb-0 text-muted small">Scheduled for tomorrow • 28 students enrolled</p>
+
+          <!-- Recent Activity -->
+          <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-clock-history me-2"></i>Recent Activity
+              </h5>
+            </div>
+            <div class="list-group list-group-flush">
+              <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>Mathematics Final Exam</strong>
+                    <p class="mb-0 text-muted small">Started 2 hours ago • 45 students participating</p>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" routerLink="/exams/1">View</button>
+                    <button class="btn btn-sm btn-primary" [routerLink]="['/submissions/exam', 1]">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <button class="btn btn-sm btn-outline-primary" routerLink="/exams/3">View</button>
+              <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>Physics Midterm</strong>
+                    <p class="mb-0 text-muted small">Ends in 3 hours • 32 students participating</p>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" routerLink="/exams/2">View</button>
+                    <button class="btn btn-sm btn-primary" [routerLink]="['/submissions/exam', 2]">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>Chemistry Quiz</strong>
+                    <p class="mb-0 text-muted small">Scheduled for tomorrow • 28 students enrolled</p>
+                  </div>
+                  <button class="btn btn-sm btn-outline-primary" routerLink="/exams/3">View</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      }
 
-  <!-- Quick Actions Floating Button -->
-  <div class="position-fixed bottom-0 end-0 p-4" style="z-index: 1000;">
-    <div class="btn-group dropup">
-      <button
-        type="button"
-        class="btn btn-primary btn-lg rounded-circle shadow-lg"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-        style="width: 60px; height: 60px;">
-        <i class="bi bi-plus-lg fs-4"></i>
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow">
-        <li>
-          <a class="dropdown-item" routerLink="/exams/create">
-            <i class="bi bi-file-earmark-plus me-2"></i>Create Exam
-          </a>
-        </li>
-        <li>
-          <a class="dropdown-item" routerLink="/submissions">
-            <i class="bi bi-clipboard-check me-2"></i>Grade Submissions
-          </a>
-        </li>
-        <li>
-          <a class="dropdown-item" routerLink="/proctoring">
-            <i class="bi bi-camera-video me-2"></i>Start Proctoring
-          </a>
-        </li>
-      </ul>
+      <!-- Other sections show when routes are loaded -->
+      <router-outlet></router-outlet>
+
     </div>
-  </div>
+  </main>
 </div>

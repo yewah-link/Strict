@@ -9,6 +9,7 @@ interface Submission {
   studentId: number;
   studentName: string;
   studentEmail: string;
+  studentRegNo: string; // ✅ Added RegNo field
   submittedAt: string;
   score: number | null;
   totalMarks: number;
@@ -229,14 +230,15 @@ export class SubmissionManagement implements OnInit {
     return studentExams.map(se => ({
       id: se.id || 0,
       studentId: se.studentId || 0,
-      studentName: 'Student ' + se.studentId, // You'll need to fetch student details separately
-      studentEmail: '',
+      studentName: se.studentName || 'Unknown Student',
+      studentEmail: se.studentEmail || '',
+      studentRegNo: se.studentRegNo || 'N/A', // ✅ Map studentRegNo from API
       submittedAt: se.submittedAt || '',
-      score: se.result?.obtainedMarks || null,
+      score: se.result?.obtainedMarks ?? null,
       totalMarks: se.result?.totalMarks || 0,
       status: this.mapExamStatusToSubmissionStatus(se.status || 'SUBMITTED'),
       answeredQuestions: se.answers?.length || 0,
-      totalQuestions: 0,
+      totalQuestions: se.questions?.length || 0,
       timeSpent: this.calculateTimeSpent(se.startedAt, se.submittedAt),
       flaggedForReview: (se.violations?.length || 0) > 0,
       violations: se.violations?.length || 0
@@ -288,12 +290,13 @@ export class SubmissionManagement implements OnInit {
       filtered = filtered.filter(s => s.status === this.statusFilter);
     }
 
-    // Search filter
+    // Search filter - now includes RegNo
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(s =>
         s.studentName.toLowerCase().includes(query) ||
-        s.studentEmail.toLowerCase().includes(query)
+        s.studentEmail.toLowerCase().includes(query) ||
+        s.studentRegNo.toLowerCase().includes(query) // ✅ Search by RegNo
       );
     }
 
@@ -355,8 +358,10 @@ export class SubmissionManagement implements OnInit {
   exportToCSV(): void {
     if (!this.selectedExam) return;
 
-    const headers = ['Student Name', 'Email', 'Submitted At', 'Status', 'Score', 'Questions Answered', 'Time Spent'];
-    const rows = this.filteredSubmissions.map(s => [
+    const headers = ['#', 'Reg No', 'Student Name', 'Email', 'Submitted At', 'Status', 'Score', 'Questions Answered', 'Time Spent'];
+    const rows = this.filteredSubmissions.map((s, index) => [
+      (index + 1).toString(),
+      s.studentRegNo,
       s.studentName,
       s.studentEmail,
       s.submittedAt,

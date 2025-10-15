@@ -148,6 +148,4 @@ submitGrade(studentExamId: number, score: number) {
   );
 }
 
-
-
 }
