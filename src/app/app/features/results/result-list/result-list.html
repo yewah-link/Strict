@@ -1,15 +1,19 @@
 <div class="container mt-4">
   <h2>Student Results</h2>
 
-  <div *ngIf="loading" class="text-center my-5">
-    <div class="spinner-border" role="status">
-      <span class="visually-hidden">Loading...</span>
+  @if (loading) {
+    <div class="text-center my-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
-  </div>
+  }
 
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  @if (error) {
+    <div class="alert alert-danger">{{ error }}</div>
+  }
 
-  <div *ngIf="!loading && examGroups.length > 0">
+  @if (!loading && examGroups.length > 0) {
     <h4 class="mb-3">All Exams - {{ results.length }} Total Students</h4>
 
     <div class="table-responsive">
@@ -17,32 +21,38 @@
         <thead>
           <tr>
             <th>Exam</th>
-            <th>Students</th>
+            <th>Total Students</th>
             <th>Graded</th>
-            <th>Not Graded</th>
+            <th>Submitted</th>
+            <th>In Progress</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let exam of examGroups">
-            <td>{{ exam.examTitle }}</td>
-            <td>{{ exam.resultCount }}</td>
-            <td><span class="badge bg-success">{{ exam.gradedCount }}</span></td>
-            <td><span class="badge bg-warning">{{ exam.notGradedCount }}</span></td>
-            <td>
-              <button
-                class="btn btn-sm btn-primary"
-                (click)="viewExamDetails(exam.examId)">
-                View Details
-              </button>
-            </td>
-          </tr>
+          @for (exam of examGroups; track exam.examId) {
+            <tr>
+              <td>{{ exam.examTitle }}</td>
+              <td>{{ exam.resultCount }}</td>
+              <td><span class="badge bg-success">{{ exam.gradedCount }}</span></td>
+              <td><span class="badge bg-warning text-dark">{{ exam.submittedCount }}</span></td>
+              <td><span class="badge bg-info text-dark">{{ exam.inProgressCount }}</span></td>
+              <td>
+                <button
+                  class="btn btn-sm btn-primary"
+                  (click)="viewExamDetails(exam.examId)">
+                  View Details
+                </button>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
-  </div>
+  }
 
-  <div *ngIf="!loading && examGroups.length === 0" class="alert alert-info">
-    No exam results available.
-  </div>
+  @if (!loading && examGroups.length === 0) {
+    <div class="alert alert-info">
+      No exam results available.
+    </div>
+  }
 </div>

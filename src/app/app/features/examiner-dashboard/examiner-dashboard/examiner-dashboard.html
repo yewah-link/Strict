@@ -5,10 +5,10 @@
     <!-- Sidebar Header -->
     <div class="sidebar-header border-bottom p-3 d-flex justify-content-between align-items-center">
       @if (isSidebarOpen) {
-        <h5 class="mb-0 fw-bold">Examiner Portal</h5>
+        <h5 class="mb-0 fw-bold sidebar-title">Examiner Portal</h5>
       }
       <button class="btn btn-link text-dark p-0" (click)="toggleSidebar()">
-        <i class="bi" [ngClass]="isSidebarOpen ? 'bi-x-lg' : 'bi-list'" style="font-size: 1.2rem;"></i>
+        <i class="bi toggle-icon" [ngClass]="isSidebarOpen ? 'bi-x-lg' : 'bi-list'" style="font-size: 1.2rem;"></i>
       </button>
     </div>
 
@@ -19,9 +19,9 @@
         [class.active]="activeSection === 'dashboard'"
         routerLink="/examiner-dashboard"
         role="button">
-        <i class="bi bi-house-door fs-5"></i>
+        <i class="bi bi-house-door fs-5 sidebar-icon"></i>
         @if (isSidebarOpen) {
-          <span>Dashboard</span>
+          <span class="sidebar-text">Dashboard</span>
         }
       </a>
 
@@ -30,9 +30,9 @@
         [class.active]="activeSection === 'create-exam'"
         routerLink="/exams/create"
         role="button">
-        <i class="bi bi-file-earmark-plus fs-5"></i>
+        <i class="bi bi-file-earmark-plus fs-5 sidebar-icon"></i>
         @if (isSidebarOpen) {
-          <span>Create Exam</span>
+          <span class="sidebar-text">Create Exam</span>
         }
       </a>
 
@@ -41,9 +41,9 @@
         [class.active]="activeSection === 'manage-exams'"
         routerLink="/exams"
         role="button">
-        <i class="bi bi-clipboard-check fs-5"></i>
+        <i class="bi bi-clipboard-check fs-5 sidebar-icon"></i>
         @if (isSidebarOpen) {
-          <span>Manage Exams</span>
+          <span class="sidebar-text">Manage Exams</span>
         }
       </a>
 
@@ -52,9 +52,9 @@
         [class.active]="activeSection === 'submissions'"
         routerLink="/submissions"
         role="button">
-        <i class="bi bi-check-square fs-5"></i>
+        <i class="bi bi-check-square fs-5 sidebar-icon"></i>
         @if (isSidebarOpen) {
-          <span>Submissions</span>
+          <span class="sidebar-text">Submissions</span>
         }
       </a>
 
@@ -63,9 +63,9 @@
         [class.active]="activeSection === 'proctoring'"
         routerLink="/proctoring"
         role="button">
-        <i class="bi bi-camera-video fs-5"></i>
+        <i class="bi bi-camera-video fs-5 sidebar-icon"></i>
         @if (isSidebarOpen) {
-          <span>Proctoring</span>
+          <span class="sidebar-text">Proctoring</span>
         }
       </a>
 
@@ -74,9 +74,9 @@
         [class.active]="activeSection === 'results'"
         routerLink="/results"
         role="button">
-        <i class="bi bi-clipboard-check fs-5"></i>
+        <i class="bi bi-clipboard-check fs-5 sidebar-icon"></i>
         @if (isSidebarOpen) {
-          <span>Results</span>
+          <span class="sidebar-text">Results</span>
         }
       </a>
     </div>
@@ -84,19 +84,19 @@
     <!-- User Profile -->
     <div class="sidebar-footer border-top p-3">
       <div class="d-flex align-items-center gap-2 position-relative">
-        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center user-avatar"
             style="width: 36px; height: 36px; font-size: 0.9rem; font-weight: 600;">
           {{ getUserInitial() }}
         </div>
         @if (isSidebarOpen) {
-          <div class="flex-grow-1 text-truncate">
+          <div class="flex-grow-1 text-truncate user-info">
             <div class="fw-medium small">{{ getDisplayName() }}</div>
             <div class="text-muted text-truncate" style="font-size: 0.75rem;" [title]="userInfo.email">
               {{ userInfo.email }}
             </div>
           </div>
           <button
-            class="btn btn-link text-danger p-0 ms-2"
+            class="btn btn-link text-danger p-0 ms-2 logout-btn"
             (click)="logout()"
             title="Logout"
             style="font-size: 1.2rem;">

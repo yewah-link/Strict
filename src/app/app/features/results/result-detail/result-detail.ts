@@ -32,6 +32,10 @@ export class ResultDetail implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  gradedCount: number = 0;
+  submittedCount: number = 0;
+  inProgressCount: number = 0;
+
   constructor(
     private studentExamService: StudentExamService,
     private examService: ExamService,
@@ -59,7 +63,6 @@ export class ResultDetail implements OnInit {
         if (response.status === 'SUCCESS' && response._embedded) {
           console.log('Embedded data:', response._embedded);
 
-          // Filter exams for this specific examId
           const filteredExams = response._embedded.filter(exam => exam.examId === this.examId);
           console.log('Filtered exams for examId', this.examId, ':', filteredExams);
 
@@ -69,7 +72,6 @@ export class ResultDetail implements OnInit {
             return;
           }
 
-          // Get exam title from first result
           const firstExam = filteredExams[0];
           console.log('First exam data:', firstExam);
 
@@ -77,7 +79,6 @@ export class ResultDetail implements OnInit {
             this.examTitle = firstExam.examTitle;
             this.processResults(filteredExams);
           } else {
-            // Fetch exam title from API if not in response
             this.examService.getExamById(this.examId).subscribe({
               next: (examRes) => {
                 this.examTitle = examRes._embedded?.title || 'Unknown Exam';
@@ -105,17 +106,31 @@ export class ResultDetail implements OnInit {
   processResults(exams: StudentExamDto[]) {
     console.log('Processing results:', exams);
 
+    this.gradedCount = 0;
+    this.submittedCount = 0;
+    this.inProgressCount = 0;
+
     this.results = exams.map((exam, index) => {
       console.log(`Processing exam ${index}:`, {
         studentName: exam.studentName,
         studentEmail: exam.studentEmail,
         studentRegNo: exam.studentRegNo,
-        result: exam.result
+        result: exam.result,
+        status: exam.status
       });
 
       const obtainedMarks = exam.result?.obtainedMarks || 0;
       const totalMarks = exam.result?.totalMarks || 0;
       const percentage = totalMarks > 0 ? ((obtainedMarks / totalMarks) * 100).toFixed(1) : '0';
+      const status = exam.status || 'SUBMITTED';
+
+      if (status === 'GRADED') {
+        this.gradedCount++;
+      } else if (status === 'SUBMITTED') {
+        this.submittedCount++;
+      } else if (status === 'IN_PROGRESS') {
+        this.inProgressCount++;
+      }
 
       return {
         sno: index + 1,
@@ -128,11 +143,17 @@ export class ResultDetail implements OnInit {
         examId: exam.examId || 0,
         studentExamId: exam.id,
         submittedAt: exam.submittedAt ? this.formatDate(exam.submittedAt) : 'N/A',
-        status: exam.status || 'SUBMITTED'
+        status: status
       };
     });
 
     console.log('Final results:', this.results);
+    console.log('Status counts:', {
+      graded: this.gradedCount,
+      submitted: this.submittedCount,
+      inProgress: this.inProgressCount
+    });
+
     this.loading = false;
   }
 
@@ -153,10 +174,14 @@ export class ResultDetail implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     switch(status) {
-      case 'GRADED': return 'bg-success';
-      case 'SUBMITTED': return 'bg-warning';
-      case 'IN_PROGRESS': return 'bg-info';
-      default: return 'bg-secondary';
+      case 'GRADED':
+        return 'bg-success';
+      case 'SUBMITTED':
+        return 'bg-warning text-dark';
+      case 'IN_PROGRESS':
+        return 'bg-info text-dark';
+      default:
+        return 'bg-secondary';
     }
   }
 }
