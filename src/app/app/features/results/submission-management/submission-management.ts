@@ -9,7 +9,7 @@ interface Submission {
   studentId: number;
   studentName: string;
   studentEmail: string;
-  studentRegNo: string; // ✅ Added RegNo field
+  studentRegNo: string;
   submittedAt: string;
   score: number | null;
   totalMarks: number;
@@ -54,7 +54,8 @@ export class SubmissionManagement implements OnInit {
   // Filters
   searchQuery = '';
   statusFilter: 'ALL' | 'PENDING' | 'GRADED' | 'IN_REVIEW' = 'ALL';
-  sortBy: 'submittedAt' | 'studentName' | 'score' = 'submittedAt';
+  activeFilter: 'ALL' | 'PENDING' | 'GRADED' | 'IN_REVIEW' | 'FLAGGED' = 'ALL';
+  sortBy: 'submittedAt' | 'studentName' | 'studentRegNo' | 'score' = 'submittedAt';
   sortOrder: 'asc' | 'desc' = 'desc';
 
   isLoading = false;
@@ -98,7 +99,6 @@ export class SubmissionManagement implements OnInit {
   }
 
   processSubmittedExams(studentExams: StudentExamDto[]): void {
-    // Group submissions by exam and create exam objects
     const examMap = new Map<number, any>();
 
     studentExams.forEach(studentExam => {
@@ -107,7 +107,7 @@ export class SubmissionManagement implements OnInit {
       if (!examMap.has(studentExam.examId)) {
         examMap.set(studentExam.examId, {
           id: studentExam.examId,
-          title: 'Exam ' + studentExam.examId, // You'll need to fetch exam details separately
+          title: 'Exam ' + studentExam.examId,
           subject: '',
           totalMarks: 0,
           totalQuestions: 0,
@@ -139,16 +139,12 @@ export class SubmissionManagement implements OnInit {
     this.viewMode = 'submissions';
     this.selectedExamId = examId;
 
-    // First get all submitted exams
-    this.studentExamService.getAllSubmittedExams().subscribe(
+    this.studentExamService.getStudentsByExam(examId).subscribe(
       (response) => {
         if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
-          // Filter submissions for the selected exam
-          const examSubmissions = response._embedded.filter(se => se.examId === examId);
+          const examSubmissions = response._embedded;
 
-          // Set selected exam info from first submission if available
           if (examSubmissions.length > 0 && !this.selectedExam) {
-            // You can fetch exam details here or extract from submissions
             this.selectedExam = {
               id: examId,
               title: `Exam ${examId}`,
@@ -165,7 +161,6 @@ export class SubmissionManagement implements OnInit {
             };
           }
 
-          // Load detailed info for each submission
           this.loadDetailedSubmissions(examSubmissions);
         } else {
           console.error('Failed to load exam submissions:', response.message);
@@ -232,7 +227,7 @@ export class SubmissionManagement implements OnInit {
       studentId: se.studentId || 0,
       studentName: se.studentName || 'Unknown Student',
       studentEmail: se.studentEmail || '',
-      studentRegNo: se.studentRegNo || 'N/A', // ✅ Map studentRegNo from API
+      studentRegNo: se.studentRegNo || 'N/A',
       submittedAt: se.submittedAt || '',
       score: se.result?.obtainedMarks ?? null,
       totalMarks: se.result?.totalMarks || 0,
@@ -279,7 +274,31 @@ export class SubmissionManagement implements OnInit {
     this.selectedExamId = null;
     this.submissions = [];
     this.filteredSubmissions = [];
+    this.activeFilter = 'ALL';
+    this.searchQuery = '';
     this.loadSubmittedExams();
+  }
+
+  isValidFilter(value: string): value is 'ALL' | 'PENDING' | 'GRADED' | 'IN_REVIEW' | 'FLAGGED' {
+    return ['ALL', 'PENDING', 'GRADED', 'IN_REVIEW', 'FLAGGED'].includes(value);
+  }
+
+  setActiveFilter(filter: string): void {
+    if (!this.isValidFilter(filter)) {
+      console.error('Invalid filter value:', filter);
+      return;
+    }
+    
+    this.activeFilter = filter;
+    
+    // Map filter to statusFilter
+    if (filter === 'FLAGGED') {
+      this.statusFilter = 'ALL';
+    } else {
+      this.statusFilter = filter;
+    }
+    
+    this.applyFilters();
   }
 
   applyFilters(): void {
@@ -290,13 +309,18 @@ export class SubmissionManagement implements OnInit {
       filtered = filtered.filter(s => s.status === this.statusFilter);
     }
 
-    // Search filter - now includes RegNo
+    // Flagged filter
+    if (this.activeFilter === 'FLAGGED') {
+      filtered = filtered.filter(s => s.flaggedForReview);
+    }
+
+    // Search filter
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(s =>
         s.studentName.toLowerCase().includes(query) ||
         s.studentEmail.toLowerCase().includes(query) ||
-        s.studentRegNo.toLowerCase().includes(query) // ✅ Search by RegNo
+        s.studentRegNo.toLowerCase().includes(query)
       );
     }
 
@@ -310,6 +334,9 @@ export class SubmissionManagement implements OnInit {
           break;
         case 'studentName':
           comparison = a.studentName.localeCompare(b.studentName);
+          break;
+        case 'studentRegNo':
+          comparison = a.studentRegNo.localeCompare(b.studentRegNo);
           break;
         case 'score':
           const scoreA = a.score ?? -1;
@@ -341,15 +368,25 @@ export class SubmissionManagement implements OnInit {
     this.applyFilters();
   }
 
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.applyFilters();
+  }
+
+  clearAllFilters(): void {
+    this.searchQuery = '';
+    this.statusFilter = 'ALL';
+    this.activeFilter = 'ALL';
+    this.applyFilters();
+  }
+
   gradeSubmission(submission: Submission): void {
-    // Navigate to grading page using the route pattern: /submissions/exam/:examId/submission/:submissionId
     if (this.selectedExamId) {
       this.router.navigate(['/submissions/exam', this.selectedExamId, 'submission', submission.id]);
     }
   }
 
   viewSubmissionDetails(submission: Submission): void {
-    // Navigate to detailed submission view using the same grading component
     if (this.selectedExamId) {
       this.router.navigate(['/submissions/exam', this.selectedExamId, 'submission', submission.id]);
     }
@@ -358,7 +395,7 @@ export class SubmissionManagement implements OnInit {
   exportToCSV(): void {
     if (!this.selectedExam) return;
 
-    const headers = ['#', 'Reg No', 'Student Name', 'Email', 'Submitted At', 'Status', 'Score', 'Questions Answered', 'Time Spent'];
+    const headers = ['#', 'Reg No', 'Student Name', 'Email', 'Submitted At', 'Status', 'Score', 'Questions Answered', 'Time Spent', 'Flagged'];
     const rows = this.filteredSubmissions.map((s, index) => [
       (index + 1).toString(),
       s.studentRegNo,
@@ -368,12 +405,13 @@ export class SubmissionManagement implements OnInit {
       s.status,
       s.score !== null ? s.score.toString() : 'Not Graded',
       `${s.answeredQuestions}/${s.totalQuestions}`,
-      s.timeSpent
+      s.timeSpent,
+      s.flaggedForReview ? 'Yes' : 'No'
     ]);
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.join(','))
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -387,7 +425,7 @@ export class SubmissionManagement implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'PENDING': return 'bg-warning';
+      case 'PENDING': return 'bg-warning text-dark';
       case 'GRADED': return 'bg-success';
       case 'IN_REVIEW': return 'bg-info';
       default: return 'bg-secondary';
@@ -458,6 +496,10 @@ export class SubmissionManagement implements OnInit {
 
   getGradedSubmissionsCount(): number {
     return this.submissions.filter(s => s.status === 'GRADED').length;
+  }
+
+  getInReviewCount(): number {
+    return this.submissions.filter(s => s.status === 'IN_REVIEW').length;
   }
 
   getFlaggedSubmissionsCount(): number {

@@ -23,7 +23,8 @@ interface ExamGroup {
   examTitle: string;
   resultCount: number;
   gradedCount: number;
-  notGradedCount: number;
+  submittedCount: number;
+  inProgressCount: number;
 }
 
 @Component({
@@ -116,25 +117,33 @@ export class ResultList implements OnInit {
   }
 
   groupResultsByExam() {
-    const examMap = new Map<number, { title: string; count: number; graded: number; notGraded: number }>();
+    const examMap = new Map<number, {
+      title: string;
+      count: number;
+      graded: number;
+      submitted: number;
+      inProgress: number;
+    }>();
 
     this.results.forEach(result => {
-      const isGraded = result.status === 'GRADED';
-
       if (examMap.has(result.examId)) {
         const existing = examMap.get(result.examId)!;
         existing.count++;
-        if (isGraded) {
+
+        if (result.status === 'GRADED') {
           existing.graded++;
-        } else {
-          existing.notGraded++;
+        } else if (result.status === 'SUBMITTED') {
+          existing.submitted++;
+        } else if (result.status === 'IN_PROGRESS') {
+          existing.inProgress++;
         }
       } else {
         examMap.set(result.examId, {
           title: result.examTitle,
           count: 1,
-          graded: isGraded ? 1 : 0,
-          notGraded: isGraded ? 0 : 1
+          graded: result.status === 'GRADED' ? 1 : 0,
+          submitted: result.status === 'SUBMITTED' ? 1 : 0,
+          inProgress: result.status === 'IN_PROGRESS' ? 1 : 0
         });
       }
     });
@@ -144,7 +153,8 @@ export class ResultList implements OnInit {
       examTitle: data.title,
       resultCount: data.count,
       gradedCount: data.graded,
-      notGradedCount: data.notGraded
+      submittedCount: data.submitted,
+      inProgressCount: data.inProgress
     }));
   }
 
