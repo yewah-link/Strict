@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StudentExamService, StudentExamDto, GenericResponseV2 } from '../../../core/services/student.service.exam';
 import { ExamService } from '../../../core/services/exam.service';
+import { ResultService, ResultDto } from '../../../core/services/result.service'; // ✅ Import ResultService
 
 interface ResultDisplay {
   sno: number;
@@ -39,6 +40,7 @@ export class ResultDetail implements OnInit {
   constructor(
     private studentExamService: StudentExamService,
     private examService: ExamService,
+    private resultService: ResultService, // ✅ Inject ResultService
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -103,6 +105,7 @@ export class ResultDetail implements OnInit {
     });
   }
 
+  // ✅ Updated to fetch actual results using the endpoint
   processResults(exams: StudentExamDto[]) {
     console.log('Processing results:', exams);
 
@@ -110,51 +113,99 @@ export class ResultDetail implements OnInit {
     this.submittedCount = 0;
     this.inProgressCount = 0;
 
-    this.results = exams.map((exam, index) => {
-      console.log(`Processing exam ${index}:`, {
-        studentName: exam.studentName,
-        studentEmail: exam.studentEmail,
-        studentRegNo: exam.studentRegNo,
-        result: exam.result,
-        status: exam.status
+    // ✅ Create array of promises to fetch results for each student exam
+    const resultPromises = exams.map((exam, index) => {
+      return new Promise<ResultDisplay>((resolve) => {
+        const status = exam.status || 'SUBMITTED';
+
+        // Update counts
+        if (status === 'GRADED') {
+          this.gradedCount++;
+        } else if (status === 'SUBMITTED') {
+          this.submittedCount++;
+        } else if (status === 'IN_PROGRESS') {
+          this.inProgressCount++;
+        }
+
+        // ✅ Fetch actual result from backend if exam has an ID
+        if (exam.id && status === 'GRADED') {
+          this.resultService.getResultByStudentExam(exam.id).subscribe({
+            next: (resultResponse: GenericResponseV2<ResultDto>) => {
+              if (resultResponse.status === 'SUCCESS' && resultResponse._embedded) {
+                const result = resultResponse._embedded;
+                const obtainedMarks = result.obtainedMarks || 0;
+                const totalMarks = result.totalMarks || 0;
+                const percentage = totalMarks > 0 ? ((obtainedMarks / totalMarks) * 100).toFixed(1) : '0';
+
+                console.log(`Fetched result for studentExamId ${exam.id}:`, result);
+
+                resolve({
+                  sno: index + 1,
+                  studentName: exam.studentName || 'N/A',
+                  regNo: exam.studentRegNo || 'N/A',
+                  email: exam.studentEmail || 'N/A',
+                  score: `${obtainedMarks}/${totalMarks}`,
+                  percentage: `${percentage}%`,
+                  examTitle: this.examTitle,
+                  examId: exam.examId || 0,
+                  studentExamId: exam.id,
+                  submittedAt: exam.submittedAt ? this.formatDate(exam.submittedAt) : 'N/A',
+                  status: status
+                });
+              } else {
+                // Fallback if result not found
+                this.resolveWithFallback(exam, index, status, resolve);
+              }
+            },
+            error: (err) => {
+              console.error(`Error fetching result for studentExamId ${exam.id}:`, err);
+              this.resolveWithFallback(exam, index, status, resolve);
+            }
+          });
+        } else {
+          // Not graded yet, use fallback
+          this.resolveWithFallback(exam, index, status, resolve);
+        }
       });
-
-      const obtainedMarks = exam.result?.obtainedMarks || 0;
-      const totalMarks = exam.result?.totalMarks || 0;
-      const percentage = totalMarks > 0 ? ((obtainedMarks / totalMarks) * 100).toFixed(1) : '0';
-      const status = exam.status || 'SUBMITTED';
-
-      if (status === 'GRADED') {
-        this.gradedCount++;
-      } else if (status === 'SUBMITTED') {
-        this.submittedCount++;
-      } else if (status === 'IN_PROGRESS') {
-        this.inProgressCount++;
-      }
-
-      return {
-        sno: index + 1,
-        studentName: exam.studentName || 'N/A',
-        regNo: exam.studentRegNo || 'N/A',
-        email: exam.studentEmail || 'N/A',
-        score: exam.result ? `${obtainedMarks}/${totalMarks}` : 'Not Graded',
-        percentage: exam.result ? `${percentage}%` : 'N/A',
-        examTitle: this.examTitle,
-        examId: exam.examId || 0,
-        studentExamId: exam.id,
-        submittedAt: exam.submittedAt ? this.formatDate(exam.submittedAt) : 'N/A',
-        status: status
-      };
     });
 
-    console.log('Final results:', this.results);
-    console.log('Status counts:', {
-      graded: this.gradedCount,
-      submitted: this.submittedCount,
-      inProgress: this.inProgressCount
+    // ✅ Wait for all results to be fetched
+    Promise.all(resultPromises).then((results) => {
+      this.results = results;
+      console.log('Final results with actual marks:', this.results);
+      console.log('Status counts:', {
+        graded: this.gradedCount,
+        submitted: this.submittedCount,
+        inProgress: this.inProgressCount
+      });
+      this.loading = false;
     });
+  }
 
-    this.loading = false;
+  // ✅ Helper method for fallback data
+  private resolveWithFallback(
+    exam: StudentExamDto, 
+    index: number, 
+    status: string, 
+    resolve: (value: ResultDisplay) => void
+  ) {
+    const obtainedMarks = exam.result?.obtainedMarks || 0;
+    const totalMarks = exam.result?.totalMarks || 0;
+    const percentage = totalMarks > 0 ? ((obtainedMarks / totalMarks) * 100).toFixed(1) : '0';
+
+    resolve({
+      sno: index + 1,
+      studentName: exam.studentName || 'N/A',
+      regNo: exam.studentRegNo || 'N/A',
+      email: exam.studentEmail || 'N/A',
+      score: exam.result ? `${obtainedMarks}/${totalMarks}` : 'Not Graded',
+      percentage: exam.result ? `${percentage}%` : 'N/A',
+      examTitle: this.examTitle,
+      examId: exam.examId || 0,
+      studentExamId: exam.id,
+      submittedAt: exam.submittedAt ? this.formatDate(exam.submittedAt) : 'N/A',
+      status: status
+    });
   }
 
   goBack() {

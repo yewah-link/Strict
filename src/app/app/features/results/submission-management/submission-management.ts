@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { StudentExamService, StudentExamDto, GenericResponseV2, ResponseStatusEnum } from '../../../core/services/student.service.exam';
+import { ResultService, ResultDto } from '../../../core/services/result.service'; // ✅ Added
 
 interface Submission {
   id: number;
@@ -64,7 +65,8 @@ export class SubmissionManagement implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private studentExamService: StudentExamService
+    private studentExamService: StudentExamService,
+    private resultService: ResultService // ✅ Added
   ) {}
 
   ngOnInit(): void {
@@ -99,39 +101,90 @@ export class SubmissionManagement implements OnInit {
   }
 
   processSubmittedExams(studentExams: StudentExamDto[]): void {
-    const examMap = new Map<number, any>();
+    try {
+      const examMap = new Map<number, Exam>();
 
-    studentExams.forEach(studentExam => {
-      if (!studentExam.examId) return;
+      studentExams.forEach(studentExam => {
+        if (!studentExam.examId) return;
 
-      if (!examMap.has(studentExam.examId)) {
-        examMap.set(studentExam.examId, {
-          id: studentExam.examId,
-          title: 'Exam ' + studentExam.examId,
-          subject: '',
-          totalMarks: 0,
-          totalQuestions: 0,
-          startDate: '',
-          endDate: '',
-          duration: 0,
-          status: 'ACTIVE' as const,
-          totalSubmissions: 0,
-          gradedSubmissions: 0,
-          pendingSubmissions: 0
-        });
-      }
+        if (!examMap.has(studentExam.examId)) {
+          examMap.set(studentExam.examId, {
+            id: studentExam.examId,
+            title: studentExam.examTitle || `Exam ${studentExam.examId}`,
+            subject: studentExam.examSubject || 'General',
+            totalMarks: 0,
+            totalQuestions: 0,
+            startDate: '',
+            endDate: '',
+            duration: studentExam.examDuration || 0,
+            status: 'ACTIVE',
+            totalSubmissions: 0,
+            gradedSubmissions: 0,
+            pendingSubmissions: 0
+          });
+        }
 
-      const exam = examMap.get(studentExam.examId);
-      exam.totalSubmissions++;
+        const exam = examMap.get(studentExam.examId)!;
+        exam.totalSubmissions++;
 
-      if (studentExam.status === 'GRADED') {
-        exam.gradedSubmissions++;
-      } else if (studentExam.status === 'SUBMITTED') {
-        exam.pendingSubmissions++;
-      }
-    });
+        if (studentExam.status === 'GRADED') {
+          exam.gradedSubmissions++;
+        } else if (studentExam.status === 'SUBMITTED') {
+          exam.pendingSubmissions++;
+        }
+      });
 
-    this.exams = Array.from(examMap.values());
+      const examsArray = Array.from(examMap.values());
+      
+      let loadedCount = 0;
+      examsArray.forEach(exam => {
+        this.studentExamService.getStudentsByExam(exam.id).subscribe(
+          (response) => {
+            if (response.status === ResponseStatusEnum.SUCCESS && response._embedded && response._embedded.length > 0) {
+              const firstSubmission = response._embedded[0];
+              
+              if (firstSubmission.id) {
+                this.studentExamService.getStudentExam(firstSubmission.id).subscribe(
+                  (detailResponse) => {
+                    if (detailResponse.status === ResponseStatusEnum.SUCCESS && detailResponse._embedded) {
+                      const detailed = detailResponse._embedded;
+                      exam.totalQuestions = detailed.questions?.length || 0;
+                      exam.totalMarks = detailed.examTotalMarks || 0;
+                    }
+                    
+                    loadedCount++;
+                    if (loadedCount === examsArray.length) {
+                      this.exams = examsArray;
+                    }
+                  }
+                );
+              } else {
+                loadedCount++;
+                if (loadedCount === examsArray.length) {
+                  this.exams = examsArray;
+                }
+              }
+            } else {
+              loadedCount++;
+              if (loadedCount === examsArray.length) {
+                this.exams = examsArray;
+              }
+            }
+          },
+          (error) => {
+            console.error('Error loading exam details:', error);
+            loadedCount++;
+            if (loadedCount === examsArray.length) {
+              this.exams = examsArray;
+            }
+          }
+        );
+      });
+
+    } catch (error) {
+      console.error('Error processing submitted exams:', error);
+      this.exams = [];
+    }
   }
 
   loadExamSubmissions(examId: number): void {
@@ -143,25 +196,69 @@ export class SubmissionManagement implements OnInit {
       (response) => {
         if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
           const examSubmissions = response._embedded;
+          const uniqueSubmissions = this.removeDuplicateSubmissions(examSubmissions);
 
-          if (examSubmissions.length > 0 && !this.selectedExam) {
+          if (uniqueSubmissions.length > 0 && !this.selectedExam) {
+            const firstSubmission = uniqueSubmissions[0];
             this.selectedExam = {
               id: examId,
-              title: `Exam ${examId}`,
-              subject: '',
-              totalMarks: 0,
-              totalQuestions: 0,
+              title: firstSubmission.examTitle || `Exam ${examId}`,
+              subject: firstSubmission.examSubject || 'General',
+              totalMarks: firstSubmission.examTotalMarks || 0,
+              totalQuestions: firstSubmission.questions?.length || 0,
               startDate: '',
               endDate: '',
-              duration: 0,
+              duration: firstSubmission.examDuration || 0,
               status: 'ACTIVE',
-              totalSubmissions: examSubmissions.length,
-              gradedSubmissions: examSubmissions.filter(s => s.status === 'GRADED').length,
-              pendingSubmissions: examSubmissions.filter(s => s.status === 'SUBMITTED').length
+              totalSubmissions: uniqueSubmissions.length,
+              gradedSubmissions: uniqueSubmissions.filter(s => s.status === 'GRADED').length,
+              pendingSubmissions: uniqueSubmissions.filter(s => s.status === 'SUBMITTED').length
             };
           }
 
-          this.loadDetailedSubmissions(examSubmissions);
+          let loadedCount = 0;
+          const detailedSubmissions: StudentExamDto[] = [];
+
+          uniqueSubmissions.forEach(studentExam => {
+            if (studentExam.id) {
+              this.studentExamService.getStudentExam(studentExam.id).subscribe(
+                (res) => {
+                  if (res.status === ResponseStatusEnum.SUCCESS && res._embedded) {
+                    const fullSubmission = res._embedded;
+                    detailedSubmissions.push(fullSubmission);
+
+                    if (this.selectedExam) {
+                      this.selectedExam.totalMarks = Math.max(
+                        this.selectedExam.totalMarks,
+                        fullSubmission.examTotalMarks || 0
+                      );
+                      this.selectedExam.totalQuestions = Math.max(
+                        this.selectedExam.totalQuestions,
+                        fullSubmission.questions?.length || 0
+                      );
+                    }
+                  }
+
+                  loadedCount++;
+                  if (loadedCount === uniqueSubmissions.length) {
+                    this.mapToSubmissionsWithResults(detailedSubmissions);
+                  }
+                },
+                (err) => {
+                  console.error('Error loading submission details:', err);
+                  loadedCount++;
+                  if (loadedCount === uniqueSubmissions.length) {
+                    this.mapToSubmissionsWithResults(detailedSubmissions);
+                  }
+                }
+              );
+            } else {
+              loadedCount++;
+              if (loadedCount === uniqueSubmissions.length) {
+                this.mapToSubmissionsWithResults(detailedSubmissions);
+              }
+            }
+          });
         } else {
           console.error('Failed to load exam submissions:', response.message);
           this.isLoading = false;
@@ -174,6 +271,70 @@ export class SubmissionManagement implements OnInit {
     );
   }
 
+  // ✅ NEW METHOD: Fetch results for graded submissions
+  mapToSubmissionsWithResults(studentExams: StudentExamDto[]): void {
+    const mappedSubmissions: Submission[] = [];
+    let processedCount = 0;
+
+    studentExams.forEach(se => {
+      const baseSubmission: Submission = {
+        id: se.id || 0,
+        studentId: se.studentId || 0,
+        studentName: se.studentName || 'Unknown Student',
+        studentEmail: se.studentEmail || '',
+        studentRegNo: se.studentRegNo || 'N/A',
+        submittedAt: se.submittedAt || '',
+        score: null,
+        totalMarks: se.examTotalMarks || 0,
+        status: this.mapExamStatusToSubmissionStatus(se.status || 'SUBMITTED'),
+        answeredQuestions: se.answers?.length || 0,
+        totalQuestions: se.questions?.length || 0,
+        timeSpent: this.calculateTimeSpent(se.startedAt, se.submittedAt),
+        flaggedForReview: (se.violations?.length || 0) > 0,
+        violations: se.violations?.length || 0
+      };
+
+      // ✅ Fetch actual result for GRADED submissions
+      if (se.status === 'GRADED' && se.id) {
+        this.resultService.getResultByStudentExam(se.id).subscribe({
+          next: (resultResponse: GenericResponseV2<ResultDto>) => {
+            if (resultResponse.status === 'SUCCESS' && resultResponse._embedded) {
+              baseSubmission.score = resultResponse._embedded.obtainedMarks;
+              baseSubmission.totalMarks = resultResponse._embedded.totalMarks;
+            }
+            mappedSubmissions.push(baseSubmission);
+            processedCount++;
+            
+            if (processedCount === studentExams.length) {
+              this.submissions = mappedSubmissions;
+              this.applyFilters();
+              this.isLoading = false;
+            }
+          },
+          error: () => {
+            mappedSubmissions.push(baseSubmission);
+            processedCount++;
+            
+            if (processedCount === studentExams.length) {
+              this.submissions = mappedSubmissions;
+              this.applyFilters();
+              this.isLoading = false;
+            }
+          }
+        });
+      } else {
+        mappedSubmissions.push(baseSubmission);
+        processedCount++;
+        
+        if (processedCount === studentExams.length) {
+          this.submissions = mappedSubmissions;
+          this.applyFilters();
+          this.isLoading = false;
+        }
+      }
+    });
+  }
+
   loadDetailedSubmissions(studentExams: StudentExamDto[]): void {
     if (studentExams.length === 0) {
       this.submissions = [];
@@ -182,10 +343,12 @@ export class SubmissionManagement implements OnInit {
       return;
     }
 
+    const uniqueStudentExams = this.removeDuplicateSubmissions(studentExams);
+
     let loadedCount = 0;
     const detailedSubmissions: StudentExamDto[] = [];
 
-    studentExams.forEach(studentExam => {
+    uniqueStudentExams.forEach(studentExam => {
       if (studentExam.id) {
         this.studentExamService.getStudentExam(studentExam.id).subscribe(
           (response) => {
@@ -194,50 +357,37 @@ export class SubmissionManagement implements OnInit {
             }
 
             loadedCount++;
-            if (loadedCount === studentExams.length) {
-              this.submissions = this.mapToSubmissions(detailedSubmissions);
-              this.applyFilters();
-              this.isLoading = false;
+            if (loadedCount === uniqueStudentExams.length) {
+              this.mapToSubmissionsWithResults(detailedSubmissions);
             }
           },
           (error) => {
             console.error('Error loading submission details:', error);
             loadedCount++;
-            if (loadedCount === studentExams.length) {
-              this.submissions = this.mapToSubmissions(detailedSubmissions);
-              this.applyFilters();
-              this.isLoading = false;
+            if (loadedCount === uniqueStudentExams.length) {
+              this.mapToSubmissionsWithResults(detailedSubmissions);
             }
           }
         );
       } else {
         loadedCount++;
-        if (loadedCount === studentExams.length) {
-          this.submissions = this.mapToSubmissions(detailedSubmissions);
-          this.applyFilters();
-          this.isLoading = false;
+        if (loadedCount === uniqueStudentExams.length) {
+          this.mapToSubmissionsWithResults(detailedSubmissions);
         }
       }
     });
   }
 
-  mapToSubmissions(studentExams: StudentExamDto[]): Submission[] {
-    return studentExams.map(se => ({
-      id: se.id || 0,
-      studentId: se.studentId || 0,
-      studentName: se.studentName || 'Unknown Student',
-      studentEmail: se.studentEmail || '',
-      studentRegNo: se.studentRegNo || 'N/A',
-      submittedAt: se.submittedAt || '',
-      score: se.result?.obtainedMarks ?? null,
-      totalMarks: se.result?.totalMarks || 0,
-      status: this.mapExamStatusToSubmissionStatus(se.status || 'SUBMITTED'),
-      answeredQuestions: se.answers?.length || 0,
-      totalQuestions: se.questions?.length || 0,
-      timeSpent: this.calculateTimeSpent(se.startedAt, se.submittedAt),
-      flaggedForReview: (se.violations?.length || 0) > 0,
-      violations: se.violations?.length || 0
-    }));
+  removeDuplicateSubmissions(studentExams: StudentExamDto[]): StudentExamDto[] {
+    const uniqueMap = new Map<number, StudentExamDto>();
+    
+    studentExams.forEach(exam => {
+      if (exam.id && !uniqueMap.has(exam.id)) {
+        uniqueMap.set(exam.id, exam);
+      }
+    });
+    
+    return Array.from(uniqueMap.values());
   }
 
   mapExamStatusToSubmissionStatus(status: string): 'PENDING' | 'GRADED' | 'IN_REVIEW' {
@@ -291,7 +441,6 @@ export class SubmissionManagement implements OnInit {
     
     this.activeFilter = filter;
     
-    // Map filter to statusFilter
     if (filter === 'FLAGGED') {
       this.statusFilter = 'ALL';
     } else {
@@ -304,17 +453,14 @@ export class SubmissionManagement implements OnInit {
   applyFilters(): void {
     let filtered = [...this.submissions];
 
-    // Status filter
     if (this.statusFilter !== 'ALL') {
       filtered = filtered.filter(s => s.status === this.statusFilter);
     }
 
-    // Flagged filter
     if (this.activeFilter === 'FLAGGED') {
       filtered = filtered.filter(s => s.flaggedForReview);
     }
 
-    // Search filter
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(s =>
@@ -324,7 +470,6 @@ export class SubmissionManagement implements OnInit {
       );
     }
 
-    // Sort
     filtered.sort((a, b) => {
       let comparison = 0;
 
