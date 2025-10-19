@@ -20,19 +20,50 @@
     </div>
   </div>
 
-  <!-- Success Message -->
+  <!-- Centered Success Message -->
   @if (successMessage) {
-    <div class="alert alert-success alert-dismissible fade show">
-      {{ successMessage }}
-      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    <div class="notification-overlay">
+      <div class="notification-card success">
+        <i class="bi bi-check-circle-fill notification-icon"></i>
+        <p class="notification-message">{{ successMessage }}</p>
+      </div>
     </div>
   }
 
-  <!-- Error Message -->
+  <!-- Centered Error Message -->
   @if (errorMessage) {
-    <div class="alert alert-danger alert-dismissible fade show">
-      {{ errorMessage }}
-      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    <div class="notification-overlay">
+      <div class="notification-card error">
+        <i class="bi bi-exclamation-circle-fill notification-icon"></i>
+        <p class="notification-message">{{ errorMessage }}</p>
+        <button type="button" class="btn-close-notification" (click)="errorMessage = ''">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Confirmation Modal Overlay -->
+  @if (showEndSessionModal) {
+    <div class="modal-overlay">
+      <div class="confirmation-modal">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-exclamation-triangle"></i> Confirm Action
+          </h5>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">Are you sure you want to end this proctoring session?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEndSessionModal()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger" (click)="confirmEndSession()">
+            End Session
+          </button>
+        </div>
+      </div>
     </div>
   }
 

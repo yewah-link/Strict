@@ -1,3 +1,11 @@
+// Standard Width Container
+.container-fluid {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 .exam-card {
   transition: all 0.3s ease;
   border: 1px solid #dee2e6;
@@ -17,92 +25,4 @@
     }
   }
 
-  .card-body {
-    p {
-      font-size: 0.9rem;
-
-      strong {
-        color: #495057;
-      }
-
-      i {
-        width: 16px;
-        text-align: center;
-      }
-    }
-  }
-
-  .card-footer {
-    padding: 1rem;
-
-    .btn {
-      font-weight: 500;
-      transition: all 0.2s ease;
-
-      &:hover:not(:disabled) {
-        transform: scale(1.02);
-      }
-
-      &:disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-      }
-    }
-  }
-}
-
-.input-group {
-  .input-group-text {
-    background-color: #fff;
-    border-right: none;
-  }
-
-  .form-control {
-    border-left: none;
-
-    &:focus {
-      box-shadow: none;
-      border-color: #ced4da;
-    }
-  }
-
-  .btn-outline-secondary {
-    border-left: none;
-  }
-}
-
-.badge {
-  font-size: 0.75rem;
-  padding: 0.35em 0.65em;
-}
-
-// Responsive adjustments
-@media (max-width: 768px) {
-  .exam-card {
-    margin-bottom: 1rem;
-
-    &:hover {
-      transform: none;
-    }
-  }
-
-  .card-header h5 {
-    font-size: 1rem;
-  }
-}
-
-// Animation for cards
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.exam-card {
-  animation: fadeInUp 0.5s ease;
 }

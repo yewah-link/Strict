@@ -22,6 +22,7 @@ import {
 } from '../../../core/services/exam.service';
 
 import { ProctoringService } from '../../../core/services/proctoring.service';
+import { AuthService } from '../../../core/services/auth.services'; // ✅ Import AuthService
 
 interface Question {
   id: number;
@@ -48,7 +49,7 @@ export class ExamTake implements OnInit, OnDestroy {
   sessionId: string = '';
   examId?: number;
   studentExamId?: number;
-  studentId: number = 1;
+  studentId: number = 0; // ✅ Will be set from auth service
 
   exam: ExamDto | null = null;
   questions: Question[] = [];
@@ -70,10 +71,24 @@ export class ExamTake implements OnInit, OnDestroy {
     private router: Router,
     private studentExamService: StudentExamService,
     private examService: ExamService,
-    private proctoringService: ProctoringService
+    private proctoringService: ProctoringService,
+    private authService: AuthService // ✅ Inject AuthService
   ) {}
 
   ngOnInit(): void {
+    // ✅ Get the actual logged-in student ID
+    const userId = this.authService.getCurrentUserId();
+    
+    if (!userId) {
+      this.error = 'Please log in to access the exam';
+      this.isLoading = false;
+      this.router.navigate(['/login']);
+      return;
+    }
+    
+    this.studentId = userId;
+    console.log('Logged in student ID:', this.studentId);
+
     this.subscriptions.push(
       this.route.params.subscribe(params => {
         if (params['sessionId']) {
@@ -97,55 +112,58 @@ export class ExamTake implements OnInit, OnDestroy {
   }
 
   accessExamByLink(manual: boolean = true): void {
-  if (manual && !this.sessionId.trim()) {
-    this.error = 'Please enter a valid exam session ID';
-    return;
-  }
-
-  this.isLoading = true;
-  this.error = null;
-
-  const cleanSessionId = (this.sessionId || '').split('/').pop() || this.sessionId;
-
-  // First, get the exam data
-  this.examService.getExamByCode(cleanSessionId).subscribe({
-    next: (response: ExamGenericResponse<ExamDto>) => {
-      if (response.status === ExamResponseStatusEnum.SUCCESS && response._embedded) {
-        const examData = response._embedded;
-        this.examId = examData.id;
-        this.sessionId = cleanSessionId;
-        this.showLinkInput = false;
-
-        // ✅ NOW create a student exam session properly
-        this.studentExamService.startExam(this.examId!, this.studentId).subscribe({
-          next: (studentExamResponse: StudentGenericResponse<StudentExamDto>) => {
-            if (studentExamResponse.status === StudentResponseStatusEnum.SUCCESS && studentExamResponse._embedded) {
-              // ✅ Use the REAL student exam ID from the backend
-              this.studentExamId = studentExamResponse._embedded.id;
-              this.loadExamFromData(examData);
-            } else {
-              this.isLoading = false;
-              this.error = studentExamResponse.message || 'Failed to start exam session';
-            }
-          },
-          error: (err) => {
-            console.error('Error starting exam session:', err);
-            this.isLoading = false;
-            this.error = 'Failed to start exam session. Please try again.';
-          }
-        });
-      } else {
-        this.isLoading = false;
-        this.error = response.message || 'Invalid exam link or session ID';
-      }
-    },
-    error: (err: any) => {
-      console.error('Error accessing exam:', err);
-      this.isLoading = false;
-      this.error = 'Failed to access exam. Please check the link and try again.';
+    if (manual && !this.sessionId.trim()) {
+      this.error = 'Please enter a valid exam session ID';
+      return;
     }
-  });
-}
+
+    this.isLoading = true;
+    this.error = null;
+
+    const cleanSessionId = (this.sessionId || '').split('/').pop() || this.sessionId;
+
+    // First, get the exam data
+    this.examService.getExamByCode(cleanSessionId).subscribe({
+      next: (response: ExamGenericResponse<ExamDto>) => {
+        if (response.status === ExamResponseStatusEnum.SUCCESS && response._embedded) {
+          const examData = response._embedded;
+          this.examId = examData.id;
+          this.sessionId = cleanSessionId;
+          this.showLinkInput = false;
+
+          // ✅ NOW create a student exam session with real student ID
+          console.log('Starting exam with examId:', this.examId, 'studentId:', this.studentId);
+          
+          this.studentExamService.startExam(this.examId!, this.studentId).subscribe({
+            next: (studentExamResponse: StudentGenericResponse<StudentExamDto>) => {
+              if (studentExamResponse.status === StudentResponseStatusEnum.SUCCESS && studentExamResponse._embedded) {
+                // ✅ Use the REAL student exam ID from the backend
+                this.studentExamId = studentExamResponse._embedded.id;
+                console.log('Student exam session created with ID:', this.studentExamId);
+                this.loadExamFromData(examData);
+              } else {
+                this.isLoading = false;
+                this.error = studentExamResponse.message || 'Failed to start exam session';
+              }
+            },
+            error: (err) => {
+              console.error('Error starting exam session:', err);
+              this.isLoading = false;
+              this.error = err.error?.message || 'Failed to start exam session. Please try again.';
+            }
+          });
+        } else {
+          this.isLoading = false;
+          this.error = response.message || 'Invalid exam link or session ID';
+        }
+      },
+      error: (err: any) => {
+        console.error('Error accessing exam:', err);
+        this.isLoading = false;
+        this.error = 'Failed to access exam. Please check the link and try again.';
+      }
+    });
+  }
 
   startExamByExamId(): void {
     if (!this.examId) {
@@ -156,6 +174,8 @@ export class ExamTake implements OnInit, OnDestroy {
 
     this.isLoading = true;
     this.error = null;
+
+    console.log('Starting exam by ID with examId:', this.examId, 'studentId:', this.studentId);
 
     this.studentExamService.startExam(this.examId, this.studentId).subscribe({
       next: (response: StudentGenericResponse<StudentExamDto>) => {
@@ -187,7 +207,7 @@ export class ExamTake implements OnInit, OnDestroy {
       error: (err: any) => {
         console.error('Error starting exam:', err);
         this.isLoading = false;
-        this.error = 'Failed to start exam. Please try again.';
+        this.error = err.error?.message || 'Failed to start exam. Please try again.';
       }
     });
   }
@@ -254,6 +274,7 @@ export class ExamTake implements OnInit, OnDestroy {
           next: (res) => {
             if (res.status === ExamResponseStatusEnum.SUCCESS && (res as any)._embedded) {
               this.proctoringSessionId = (res as any)._embedded.id;
+              console.log('Proctoring session started with ID:', this.proctoringSessionId);
             }
           },
           error: (err) => {
@@ -300,51 +321,51 @@ export class ExamTake implements OnInit, OnDestroy {
   }
 
   submitExam(): void {
-  if (!confirm('Are you sure you want to submit the exam? You cannot change answers after submission.')) {
-    return;
-  }
-
-  if (!this.studentExamId) {
-    this.error = 'Invalid exam session';
-    return;
-  }
-
-  const answers: any[] = this.questions.map(q => {
-    const answer: any = {
-      studentExamId: this.studentExamId!,
-      questionId: q.id
-    };
-
-    if (q.type === 'multiple-choice' && q.selectedAnswer && q.choices) {
-      const selectedChoice = q.choices.find(c => c.choiceText === q.selectedAnswer);
-      if (selectedChoice?.id) {
-        answer.selectedChoiceId = selectedChoice.id;
-      }
-    } else if (q.selectedAnswer) {
-      answer.answerText = q.selectedAnswer.toString();
+    if (!confirm('Are you sure you want to submit the exam? You cannot change answers after submission.')) {
+      return;
     }
 
-    return answer;
-  });
-
-  console.log('Submitting answers:', answers);
-
-  this.studentExamService.submitExam(this.studentExamId, answers).subscribe({
-    next: (res) => {
-      if (res.status === StudentResponseStatusEnum.SUCCESS) {
-        this.endProctoringSession();
-        this.router.navigate(['/exam-status', this.studentExamId]);
-      } else {
-        this.error = res.message || 'Failed to submit exam';
-      }
-    },
-    error: (err) => {
-      console.error('Error submitting exam:', err);
-      console.error('Error details:', err.error);
-      this.error = 'Failed to submit exam. Please try again.';
+    if (!this.studentExamId) {
+      this.error = 'Invalid exam session';
+      return;
     }
-  });
-}
+
+    const answers: any[] = this.questions.map(q => {
+      const answer: any = {
+        studentExamId: this.studentExamId!,
+        questionId: q.id
+      };
+
+      if (q.type === 'multiple-choice' && q.selectedAnswer && q.choices) {
+        const selectedChoice = q.choices.find(c => c.choiceText === q.selectedAnswer);
+        if (selectedChoice?.id) {
+          answer.selectedChoiceId = selectedChoice.id;
+        }
+      } else if (q.selectedAnswer) {
+        answer.answerText = q.selectedAnswer.toString();
+      }
+
+      return answer;
+    });
+
+    console.log('Submitting answers:', answers);
+
+    this.studentExamService.submitExam(this.studentExamId, answers).subscribe({
+      next: (res) => {
+        if (res.status === StudentResponseStatusEnum.SUCCESS) {
+          this.endProctoringSession();
+          this.router.navigate(['/exam-status', this.studentExamId]);
+        } else {
+          this.error = res.message || 'Failed to submit exam';
+        }
+      },
+      error: (err) => {
+        console.error('Error submitting exam:', err);
+        console.error('Error details:', err.error);
+        this.error = 'Failed to submit exam. Please try again.';
+      }
+    });
+  }
 
   autoSubmitExam(): void {
     if (!this.studentExamId) {

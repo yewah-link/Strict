@@ -8,7 +8,7 @@ export interface RegisterRequest {
   password: string;
   username: string;
   fullName: string;
-  role: RoleType;  // ✅ Added
+  role: RoleType;
   regNo?: string;
 }
 
@@ -67,6 +67,15 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  public getCurrentUserId(): number | null {
+    const user = this.currentUserValue;
+    return user?.id || null;
+  }
+
+  public getCurrentUser(): UserDto | null {
+    return this.currentUserValue;
+  }
+
   register(registerRequest: RegisterRequest): Observable<GenericResponseV2<UserDto>> {
     return this.http.post<GenericResponseV2<UserDto>>(
       `${this.apiUrl}/register`,
@@ -118,6 +127,11 @@ export class AuthService {
       tap(() => {
         localStorage.removeItem('token');
         localStorage.removeItem('currentUser');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('username');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('regNo');
         this.currentUserSubject.next(null);
       })
     );

@@ -87,14 +87,10 @@ export class ProctorExamSelection implements OnInit {
         this.isLoading = false;
         if (response.status === ResponseStatusEnum.SUCCESS && response._embedded) {
           const sessionId = response._embedded.id;
-          this.successMessage = `Proctoring session started for ${exam.title}`;
-          
-          setTimeout(() => {
-            // Pass examId in navigation state
-            this.router.navigate(['/proctoring/session', sessionId], {
-              state: { examId: exam.id }
-            });
-          }, 1000);
+          // Navigate immediately without success message
+          this.router.navigate(['/proctoring/session', sessionId], {
+            state: { examId: exam.id }
+          });
         } else {
           this.errorMessage = response.message || 'Failed to start proctoring session';
         }
@@ -139,14 +135,10 @@ export class ProctorExamSelection implements OnInit {
         this.isLoading = false;
         if (response.status === ResponseStatusEnum.SUCCESS && response._embedded?.id) {
           const sessionId = response._embedded.id;
-          this.successMessage = 'Joining existing proctoring session...';
-          
-          setTimeout(() => {
-            // Pass examId in navigation state
-            this.router.navigate(['/proctoring/session', sessionId], {
-              state: { examId: this.existingSessionExamId }
-            });
-          }, 500);
+          // Navigate immediately without success message
+          this.router.navigate(['/proctoring/session', sessionId], {
+            state: { examId: this.existingSessionExamId }
+          });
         } else {
           this.errorMessage = response.message || 'No active session found for this exam';
         }

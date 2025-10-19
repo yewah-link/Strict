@@ -1,0 +1,336 @@
+
+.container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Header Styles */
+.header-section {
+    margin-bottom: 1.5rem;
+}
+
+.header-section h2 {
+    font-weight: 600;
+    color: #212529;
+}
+
+/* Card Spacing - Reduce gaps */
+.card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    height: 100%;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 0.9rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: auto;
+}
+
+.card-header h5 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Video and Screen Containers - Compact sizing */
+.video-container {
+    width: 100%;
+    height: 350px;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.screen-container {
+    width: 100%;
+    height: 280px;
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.video-container i,
+.screen-container i {
+    font-size: 3rem;
+    opacity: 0.7;
+}
+
+.video-container p,
+.screen-container p {
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+/* Control buttons - Compact grid */
+.d-grid.gap-2 {
+    gap: 0.5rem !important;
+}
+
+.btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+}
+
+.btn-sm {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+}
+
+/* Active Tabs - Compact list */
+.list-group-item {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+    border: 1px solid #e9ecef;
+}
+
+.list-group-item i {
+    margin-right: 0.5rem;
+    color: #0d6efd;
+}
+
+/* Session Info - Compact text */
+.session-info-item {
+    display: flex;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.9rem;
+}
+
+.session-info-item:last-child {
+    border-bottom: none;
+}
+
+.session-info-item strong {
+    min-width: 120px;
+    font-weight: 600;
+    color: #212529;
+}
+
+.session-info-item span {
+    flex: 1;
+    word-break: break-word;
+}
+
+/* Badge styling */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+}
+
+/* Alert styling */
+.alert {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Modal overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.confirmation-modal {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 400px;
+    max-width: 90%;
+}
+
+.modal-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modal-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: #212529;
+}
+
+.modal-body {
+    padding: 1.25rem;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* Notification styles */
+.notification-overlay {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1100;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.notification-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 500px;
+    min-width: 300px;
+}
+
+.notification-card.success {
+    border-left: 4px solid #198754;
+}
+
+.notification-card.success .notification-icon {
+    color: #198754;
+    font-size: 1.5rem;
+}
+
+.notification-card.error {
+    border-left: 4px solid #dc3545;
+}
+
+.notification-card.error .notification-icon {
+    color: #dc3545;
+    font-size: 1.5rem;
+}
+
+/* Responsive Layout */
+@media (max-width: 991.98px) {
+    .video-container {
+        height: 300px;
+    }
+
+    .screen-container {
+        height: 240px;
+    }
+
+    .card {
+        margin-bottom: 0.75rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .container-fluid {
+        padding: 0.75rem;
+    }
+
+    .video-container {
+        height: 280px;
+    }
+
+    .screen-container {
+        height: 220px;
+    }
+
+    .session-info-item strong {
+        min-width: 100px;
+        font-size: 0.85rem;
+    }
+
+    .btn {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.7rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .video-container {
+        height: 240px;
+    }
+
+    .screen-container {
+        height: 180px;
+    }
+
+    .video-container i,
+    .screen-container i {
+        font-size: 2rem;
+    }
+
+    .card-header h5 {
+        font-size: 0.85rem;
+    }
+
+    .session-info-item {
+        flex-direction: column;
+        padding: 0.4rem 0;
+    }
+
+    .session-info-item strong {
+        margin-bottom: 0.2rem;
+    }
+}
+
+/* No gap between video and screen share */
+.video-screen-section .card {
+    margin-bottom: 0;
+}
+
+.video-screen-section .card:first-child {
+    margin-bottom: 0.75rem;
+}
+
+/* Compact spacing throughout */
+.mb-4 {
+    margin-bottom: 0.75rem !important;
+}
+
+.my-4 {
+    margin-top: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+}
+
+/* Loading spinner */
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+}

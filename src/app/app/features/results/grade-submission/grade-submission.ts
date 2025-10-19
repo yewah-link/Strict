@@ -65,6 +65,13 @@ export class GradeSubmission implements OnInit {
   autoGradedCount = 0;
   manualGradedCount = 0;
 
+  // Notification properties
+  successMessage: string = '';
+  errorMessage: string = '';
+  showConfirmModal = false;
+  confirmMessage = '';
+  confirmCallback: (() => void) | null = null;
+
   // Expose Math to template
   Math = Math;
 
@@ -100,20 +107,19 @@ export class GradeSubmission implements OnInit {
           console.log('Loaded submission:', this.submission);
         } else {
           console.error('Failed to load submission details:', response.message);
-          alert(`Error: ${response.message}`);
+          this.showError(`Error: ${response.message}`);
         }
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading submission details:', error);
-        alert('Failed to load submission. Please try again.');
+        this.showError('Failed to load submission. Please try again.');
         this.isLoading = false;
       }
     });
   }
 
   mapStudentExamToSubmission(studentExam: StudentExamDto): void {
-    // Check if already graded - primarily check status, then check if result exists with obtainedMarks (including 0)
     const isAlreadyGraded = studentExam.status === 'GRADED' || 
                             !!(studentExam.result && (studentExam.result.obtainedMarks !== null && studentExam.result.obtainedMarks !== undefined));
 
@@ -133,7 +139,7 @@ export class GradeSubmission implements OnInit {
       flaggedForReview: (studentExam.violations?.length || 0) > 0,
       violations: studentExam.violations?.length || 0,
       isAlreadyGraded: isAlreadyGraded,
-      gradedAt: (studentExam.result as any)?.gradedAt || studentExam.submittedAt, // Fallback to submittedAt if gradedAt not available
+      gradedAt: (studentExam.result as any)?.gradedAt || studentExam.submittedAt,
       questions: (studentExam.questions || []).map(q => {
         const correctChoice = q.choices?.find(c => c.isCorrect);
         return {
@@ -155,13 +161,10 @@ export class GradeSubmission implements OnInit {
         const question = studentExam.questions?.find(q => q.id === ans.questionId);
         let studentAnswerText = '';
 
-        // If it's a multiple choice question
         if (ans.selectedChoiceId && question?.choices) {
           const selectedChoice = question.choices.find(c => c.id === ans.selectedChoiceId);
           studentAnswerText = selectedChoice?.choiceText || `Choice ID: ${ans.selectedChoiceId}`;
-        }
-        // If it's a written answer
-        else if (ans.answerText) {
+        } else if (ans.answerText) {
           studentAnswerText = ans.answerText;
         }
 
@@ -171,7 +174,7 @@ export class GradeSubmission implements OnInit {
           selectedChoiceId: ans.selectedChoiceId,
           isCorrect: ans.isCorrect,
           marksAwarded: ans.obtainedMarks !== undefined ? ans.obtainedMarks : null,
-          feedback: (ans as any).feedback || '' // Use type assertion since feedback might not be in DTO
+          feedback: (ans as any).feedback || ''
         };
       })
     };
@@ -254,7 +257,6 @@ export class GradeSubmission implements OnInit {
       const question = this.submission!.questions.find(q => q.id === answer.questionId);
       if (!question) return;
 
-      // Auto-grade MCQ only
       if (question.questionType === 'MCQ' && question.correctChoiceId && answer.selectedChoiceId) {
         const isCorrect = answer.selectedChoiceId === question.correctChoiceId;
         answer.isCorrect = isCorrect;
@@ -266,9 +268,9 @@ export class GradeSubmission implements OnInit {
     this.calculateScores();
 
     if (gradedCount > 0) {
-      alert(`Auto-graded ${gradedCount} multiple choice question(s)`);
+      this.showSuccess(`Auto-graded ${gradedCount} multiple choice question(s)`);
     } else {
-      alert('No multiple choice questions to auto-grade');
+      this.showError('No multiple choice questions to auto-grade');
     }
   }
 
@@ -314,13 +316,10 @@ export class GradeSubmission implements OnInit {
 
     this.isSaving = true;
 
-    // TODO: Implement save progress API call
-    // You'll need to create a method in the service to update marks for answers
-
     setTimeout(() => {
       console.log('Progress saved');
       this.isSaving = false;
-      alert('Progress saved successfully!');
+      this.showSuccess('Progress saved successfully!');
     }, 500);
   }
 
@@ -328,16 +327,26 @@ export class GradeSubmission implements OnInit {
     if (!this.submission) return;
 
     if (this.submission.isAlreadyGraded) {
-      if (!confirm('This submission has already been graded. Do you want to regrade it?')) {
-        return;
-      }
+      this.showConfirmDialog(
+        'This submission has already been graded. Do you want to regrade it?',
+        () => this.proceedWithGrading()
+      );
+      return;
     }
 
     if (!this.isSubmissionComplete()) {
-      if (!confirm('Not all questions have been graded. Are you sure you want to submit?')) {
-        return;
-      }
+      this.showConfirmDialog(
+        'Not all questions have been graded. Are you sure you want to submit?',
+        () => this.proceedWithGrading()
+      );
+      return;
     }
+
+    this.proceedWithGrading();
+  }
+
+  proceedWithGrading(): void {
+    if (!this.submission) return;
 
     this.isSaving = true;
     const studentExamId = this.submission.id;
@@ -347,15 +356,17 @@ export class GradeSubmission implements OnInit {
       next: (response: GenericResponseV2<ResultDto>) => {
         this.isSaving = false;
         if (response.status === ResponseStatusEnum.SUCCESS) {
-          alert(`Grading submitted successfully! Final Score: ${finalScore}/${this.submission!.totalMarks}`);
-          this.router.navigate(['/submissions'], { queryParams: { examId: this.examId } });
+          this.showSuccess(`Grading submitted successfully! Final Score: ${finalScore}/${this.submission!.totalMarks}`);
+          setTimeout(() => {
+            this.router.navigate(['/submissions'], { queryParams: { examId: this.examId } });
+          }, 1500);
         } else {
-          alert('Failed to submit grading: ' + response.message);
+          this.showError('Failed to submit grading: ' + response.message);
         }
       },
       error: (error: any) => {
         this.isSaving = false;
-        alert('Network error while submitting grading.');
+        this.showError('Network error while submitting grading.');
         console.error(error);
       }
     });
@@ -389,7 +400,6 @@ export class GradeSubmission implements OnInit {
     return 'danger';
   }
 
-  // Helper method to check if answer is correct for display
   isAnswerCorrect(answer: Answer): boolean {
     const question = this.submission?.questions.find(q => q.id === answer.questionId);
     if (!question) return false;
@@ -401,11 +411,44 @@ export class GradeSubmission implements OnInit {
     return answer.isCorrect || false;
   }
 
-  // Helper method to get choice text by ID
   getChoiceText(questionId: number, choiceId?: number): string {
     if (!choiceId) return '';
     const question = this.submission?.questions.find(q => q.id === questionId);
     const choice = question?.options?.find(opt => opt.id === choiceId);
     return choice?.text || `Choice ID: ${choiceId}`;
+  }
+
+  // Notification methods
+  showSuccess(message: string): void {
+    this.successMessage = message;
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 3000);
+  }
+
+  showError(message: string): void {
+    this.errorMessage = message;
+    setTimeout(() => {
+      this.errorMessage = '';
+    }, 3000);
+  }
+
+  showConfirmDialog(message: string, callback: () => void): void {
+    this.confirmMessage = message;
+    this.confirmCallback = callback;
+    this.showConfirmModal = true;
+  }
+
+  closeConfirmDialog(): void {
+    this.showConfirmModal = false;
+    this.confirmMessage = '';
+    this.confirmCallback = null;
+  }
+
+  confirmAction(): void {
+    if (this.confirmCallback) {
+      this.confirmCallback();
+    }
+    this.closeConfirmDialog();
   }
 }

@@ -20,6 +20,7 @@ export class ProctoringSession implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
   activeTabs: string[] = [];
+  showEndSessionModal = false;
 
   // Monitoring states
   isVideoActive = false;
@@ -189,22 +190,29 @@ export class ProctoringSession implements OnInit, OnDestroy {
   }
 
   endSession() {
-    if (confirm('Are you sure you want to end this proctoring session?')) {
-      this.proctoringService.endProctoringSession(this.sessionId).subscribe({
-        next: (response) => {
-          if (response.status === ResponseStatusEnum.SUCCESS) {
-            this.successMessage = 'Session ended successfully';
-            this.stopAutoRefresh();
-            setTimeout(() => this.router.navigate(['/proctoring']), 2000);
-          } else {
-            this.errorMessage = response.message || 'Failed to end session';
-          }
-        },
-        error: () => {
-          this.errorMessage = 'Failed to end session';
+    this.showEndSessionModal = true;
+  }
+
+  closeEndSessionModal() {
+    this.showEndSessionModal = false;
+  }
+
+  confirmEndSession() {
+    this.showEndSessionModal = false;
+    this.proctoringService.endProctoringSession(this.sessionId).subscribe({
+      next: (response) => {
+        if (response.status === ResponseStatusEnum.SUCCESS) {
+          this.successMessage = 'Session ended successfully';
+          this.stopAutoRefresh();
+          setTimeout(() => this.router.navigate(['/proctoring']), 2000);
+        } else {
+          this.errorMessage = response.message || 'Failed to end session';
         }
-      });
-    }
+      },
+      error: () => {
+        this.errorMessage = 'Failed to end session';
+      }
+    });
   }
 
   pauseSession() {

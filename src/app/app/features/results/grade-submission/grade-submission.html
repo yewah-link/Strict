@@ -13,6 +13,53 @@
     </div>
   </div>
 
+  <!-- Centered Success Message -->
+  @if (successMessage) {
+    <div class="notification-overlay">
+      <div class="notification-card success">
+        <i class="bi bi-check-circle-fill notification-icon"></i>
+        <p class="notification-message">{{ successMessage }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Centered Error Message -->
+  @if (errorMessage) {
+    <div class="notification-overlay">
+      <div class="notification-card error">
+        <i class="bi bi-exclamation-circle-fill notification-icon"></i>
+        <p class="notification-message">{{ errorMessage }}</p>
+        <button type="button" class="btn-close-notification" (click)="errorMessage = ''">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Confirmation Modal -->
+  @if (showConfirmModal) {
+    <div class="notification-overlay">
+      <div class="confirmation-modal">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-exclamation-triangle"></i> Confirm Action
+          </h5>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">{{ confirmMessage }}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeConfirmDialog()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger" (click)="confirmAction()">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Student Info Card -->
   <div class="card shadow-sm border-0 mb-4">
     <div class="card-body py-3">
